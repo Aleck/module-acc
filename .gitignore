@@ -15,6 +15,11 @@
 *.symvers
 *.mod.c
 *.order
+*.ko
+*.ko.cmd
+*.mod.o.cmd
+*.o.cmd
+.tmp_versions/
 
 #Editor stuff
 *~
