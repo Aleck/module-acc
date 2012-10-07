@@ -14,13 +14,13 @@ module-acc
 
 ############ Cose fatte
 
--scrivere un modulo che carica un device nel kernel.
+- scrivere un modulo che carica un device nel kernel.
 
 
 ############ Cose da fare nell'immediato futuro
 
--aggiungere al device la controparte in /dev/* e gestirla
--supportare almeno le operazioni di scrittura e lettura
+- aggiungere al device la controparte in /dev/* e gestirla
+- supportare almeno le operazioni di scrittura e lettura
 
 
 ############ Cose da sistemare
