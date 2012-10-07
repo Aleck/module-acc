@@ -16,8 +16,8 @@
 
 
 //per settare la grandezza di quanto posso leggere e scrivere (cosa molto stupida)
-#ifndef HELLO_MAX_WRITABLE_SIZE
-#define HELLO_MAX_WRITABLE_SIZE 100
+#ifndef ACC_MAX_WRITABLE_SIZE
+#define ACC_MAX_WRITABLE_SIZE 100
 #endif
 
 

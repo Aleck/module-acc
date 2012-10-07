@@ -27,8 +27,8 @@ int acc_minor = 0;    //ricordati che è solo una dichiarazione
 
 //giusto per farlo parametrico
 int numero_dispositivi = 1;
-int grandezza_massima_scrivibile = HELLO_MAX_WRITABLE_SIZE;
-int numero_accessi_simultantei = 1;
+int grandezza_massima_scrivibile = ACC_MAX_WRITABLE_SIZE;
+int numero_accessi_simultanei = 1;
 
 
 //il device vero e proprio
@@ -129,7 +129,7 @@ int acc_init_module(void)
 	//setto la grandezza dell'area da scrivere
 	acc_device->size = grandezza_massima_scrivibile;
 	//inizializzo il semaforo
-	sema_init(&acc_device->sem, numero_accessi_simultantei);
+	sema_init(&acc_device->sem, numero_accessi_simultanei);
 	//inizializzo il cdev penso con tutto a null
 	cdev_init(&acc_device->cdev, &acc_fops);
 	//setto il propietario del cdev
