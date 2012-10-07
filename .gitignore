@@ -10,3 +10,11 @@
 *.lai
 *.la
 *.a
+
+#Module stuff
+*.symvers
+*.mod.c
+*.order
+
+#Editor stuff
+*~
