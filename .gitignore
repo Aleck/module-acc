@@ -23,3 +23,9 @@
 
 #Editor stuff
 *~
+
+
+#Kdevelop file
+.kdev*
+*.kdev4
+
