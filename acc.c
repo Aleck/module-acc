@@ -96,7 +96,7 @@ int acc_init_module(void)
 	
 	
 	//chiedo dinamicamente un device
-	result = alloc_chrdev_region(&dev, acc_minor, numero_dispositivi, "dispositivo_acc");
+	result = alloc_chrdev_region(&dev, acc_minor, numero_dispositivi, "acc");
 	if (result < 0) {
 	  printk(KERN_ALERT "Ho fallito ad ottenere un numero maggiore!\n");
 	  return result;

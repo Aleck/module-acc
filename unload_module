@@ -1,0 +1,18 @@
+#!/bin/bash
+module="acc"
+device="acc"
+
+if [ "$(id -u)" != "0" ]
+then
+  echo "You must be root to load or unload kernel modules"
+  exit 1
+fi
+
+# invoke rmmod with all arguments we got
+/sbin/rmmod $module $* || exit 1
+
+# remove nodes
+rm -f /dev/${device}[0] /dev/${device}
+
+exit 0
+ 
