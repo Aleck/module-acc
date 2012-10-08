@@ -10,6 +10,8 @@
 #include <linux/slab.h>		/* kmalloc() */
 
 
+#include <asm/uaccess.h>        /* per letture e scritture */
+
 
 
 
@@ -40,19 +42,15 @@ struct acc_dev *acc_device;
 //dichiaro le operazioni consentite (per ora nessuna)
 struct file_operations acc_fops = {
 	.owner =    THIS_MODULE,
+	.read  =     acc_read,
+	.write =     acc_write,
+	.open  =     acc_open,
 };
 
 
 
 
 //****************************************************************************************************
-
-
-
-
-
-
-
 
 
 
@@ -68,10 +66,147 @@ module_param(grandezza_massima_scrivibile, int, S_IRUGO);
 
 
 
+//********************************** oerazioni sul device ********************************************
+
+
+int acc_trim(struct acc_dev *dev) {
+  
+  if (dev->data) {
+    kfree(dev->data);
+  }
+  
+  dev->data = NULL;
+  
+  return 0;
+}
+
+
+int acc_open (struct inode *inode, struct file *filp) {
+  
+ //prendo le informazioni del device che ha chiesto l'apertura
+ struct acc_dev *dev;
+ dev = container_of(inode->i_cdev, struct acc_dev, cdev);
+ 
+ //lo azzero solo se è stato aperto come WRITE_ONLY
+ if ( (filp->f_flags & O_ACCMODE) == O_WRONLY) {
+   if (down_interruptible(&dev->sem)) {
+     return -ERESTARTSYS;
+   }
+   acc_trim(dev);
+   up(&dev->sem);
+ }
+   
+ /* and use filp->private_data to point to the device data */
+ filp->private_data = dev;
+ return 0;
+}
+
+
+
+int acc_release (struct inode *inode, struct file *filp) {
+  return 0;
+}
+
+
+ssize_t acc_read (struct file *filp, char __user *buf, size_t count, loff_t *f_pos) {
+  
+  struct acc_dev *dev = filp->private_data; /* the first listitem */
+  ssize_t retval = 0;
+  
+  
+  //ottengo l'accesso esclusivo
+  if (down_interruptible(&dev->sem)) {
+    return -ERESTARTSYS;
+  }
+  
+  //se non ci sono dati ritorno subito
+  if (!dev->data) {
+    up(&dev->sem);
+    return retval;
+  }
+  
+  //non è intelligente mettere un offset > della grandezza dei dati
+  if (*f_pos > dev->size) {
+    up(&dev->sem);
+    return retval;
+  }
+  
+  //tronco quanti dati posso leggere
+  if (*f_pos + count > dev->size)
+    count = dev->size - *f_pos;
+  
+  //la lettura vera e propria
+  if (copy_to_user(buf, dev->data + *f_pos, count)) {
+    retval = -EFAULT;
+    up(&dev->sem);
+    return retval;
+  }
+  
+  //ho finito la copia
+  up(&dev->sem);
+  *f_pos += count;
+  return count;
+  
+}
+
+
+
+ssize_t acc_write (struct file *filp, const char __user *buf, size_t count, loff_t *f_pos) {
+  
+  struct acc_dev *dev = filp->private_data; /* the first listitem */
+  ssize_t retval = -ENOMEM; /* our most likely error */
+  
+  //ottengo l'accesso esclusivo
+  if (down_interruptible(&dev->sem)) {
+    return -ERESTARTSYS;
+  }
+  
+  //controllo che il count è adeguato
+  if (count > ACC_MAX_WRITABLE_SIZE) {
+    up(&dev->sem);
+    return retval;
+  }
+  
+  
+  if (*f_pos + count > ACC_MAX_WRITABLE_SIZE)
+    count = ACC_MAX_WRITABLE_SIZE - *f_pos;
+  
+  
+  //controlliamo la prima scrittura
+  if (!dev->data) {
+    dev->data = kmalloc(sizeof(void*), GFP_KERNEL);
+    if (!dev->data) {
+      up(&dev->sem);
+      return retval;
+    }
+  }
+  
+  
+  //scriviamo gli zeri nella memoria
+  memset(dev->data, 0, ACC_MAX_WRITABLE_SIZE);
+  
+  //ora scriviamo i dati
+  if (copy_from_user(dev->data + *f_pos, buf, count)) {
+    retval = -EFAULT;
+    up(&dev->sem);
+    return retval;
+  }
+  
+  //aggiorno la grandezza
+  *f_pos += count;
+  if (dev->size < *f_pos) {
+    dev->size = *f_pos;
+  }
+  
+  
+  up(&dev->sem);
+  return count;
+}
 
 
 
 
+//*****************************************************************************************************
 
 
 
@@ -83,7 +218,6 @@ module_param(grandezza_massima_scrivibile, int, S_IRUGO);
 
 
 //***************** funzioni che riguardano il modulo in se non le operazioni ***********************
-
 
 // funzione che inizializza il nostro modulo
 int acc_init_module(void)
