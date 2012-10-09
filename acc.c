@@ -224,25 +224,20 @@ int acc_init_module(void)
 {	
 	//dichiarazione del dispositivo del modulo
 	int result = 0;  //usato per ottenere il risultato delle nostre applicazioni
-	dev_t dev = 0;  //usato per ottenere i numeri MAJOR e basta
-	int device_number = 0; //il numero del device (maggioer + minore)
+	dev_t device_number = 0;  //usato per ottenere i numeri MAJOR e basta
 	
 	
 	
 	//chiedo dinamicamente un device
-	result = alloc_chrdev_region(&dev, acc_minor, numero_dispositivi, "acc");
+	result = alloc_chrdev_region(&device_number, acc_minor, numero_dispositivi, "acc");
 	if (result < 0) {
 	  printk(KERN_ALERT "Ho fallito ad ottenere un numero maggiore!\n");
 	  return result;
 	}
 	
 	//se non è fallita ottengo i numeri maggiori e minori
-	acc_major = MAJOR(dev);
-	acc_minor = MINOR(dev);
-	
-	//ora ottengo il numero del device totale (maggiore + totale)
-	device_number = MKDEV(acc_major, acc_minor);
-	
+	acc_major = MAJOR(device_number);
+	acc_minor = MINOR(device_number);
 	
 	//i numeri ora li posso mettere nel cassetto li utilizzo dopo
 	
@@ -264,12 +259,10 @@ int acc_init_module(void)
 	acc_device->size = grandezza_massima_scrivibile;
 	//inizializzo il semaforo
 	sema_init(&acc_device->sem, numero_accessi_simultanei);
-	//inizializzo il cdev penso con tutto a null
+	//inizializzo il cdev e gli attacca le operazioni
 	cdev_init(&acc_device->cdev, &acc_fops);
 	//setto il propietario del cdev
 	acc_device->cdev.owner = THIS_MODULE;
-	//setto le operazioni consentite
-	acc_device->cdev.ops = &acc_fops;	
 	
 	
 	// ora aggiungo veramente il device usando il device number
