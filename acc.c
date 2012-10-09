@@ -256,7 +256,7 @@ int acc_init_module(void)
 	//ora lo inizializzo
 	
 	//setto la grandezza dell'area da scrivere
-	acc_device->size = grandezza_massima_scrivibile;
+	acc_device->size = 0;
 	//inizializzo il semaforo
 	sema_init(&acc_device->sem, numero_accessi_simultanei);
 	//inizializzo il cdev e gli attacca le operazioni
