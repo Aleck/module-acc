@@ -288,6 +288,7 @@ void acc_cleanup_module(void)
 	
 	if (acc_device) {
 	  cdev_del(&acc_device->cdev);
+	  acc_trim(acc_device);
 	  kfree(acc_device);
 	}
 	

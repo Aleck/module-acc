@@ -1,0 +1,9 @@
+#!/bin/bash
+
+#export necessari
+export PATH=/opt/openrisc/bin:$PATH
+export PATH_TO_LINUX=$(pwd)/../linux
+
+
+#eseguo il simulatore
+sim -f $(pwd)/or1ksim.cfg $PATH_TO_LINUX/vmlinux
