@@ -1,0 +1,4 @@
+#!bin/sh
+cp ../acc.c ../../linux/arch/openrisc/lib/ 
+cp ../acc.h ../../linux/arch/openrisc/lib/
+cp Makefile ../../linux/arch/openrisc/lib/
