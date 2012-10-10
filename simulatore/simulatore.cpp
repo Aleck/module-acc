@@ -12,8 +12,7 @@ int funione_lettura(void              *class_ptr,
   
   
   
-  
-  
+  return 0;
 }
 
 
@@ -27,7 +26,7 @@ int funione_scrittura(void              *class_ptr,
   
   
   
-  
+  return 0;
 }
 
 
@@ -46,8 +45,6 @@ int main(int argc, char* argv[]) {
   } else {
     std::cout << "Fallita inizializzazione simulatore" << std::endl;
   }
-  
-  
   
   
 }
