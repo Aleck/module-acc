@@ -40,8 +40,13 @@ int main(int argc, char* argv[]) {
   
   std::cout << "Inizializzo il simulatore" << std::endl;
   
-  if ( or1ksim_init(argc, argv, NULL, funione_lettura, funione_scrittura) == OR1KSIM_RC_OK) {
-    std::cout << "Fallita inizializzazione simulatore" << std::endl;
+  if ( or1ksim_init(argc, argv, NULL, NULL, NULL) == OR1KSIM_RC_OK) {
+    std::cout << "Riuscita inizializzazione simulatore" << std::endl;
+    
+    
+    or1ksim_run(-1);
+    
+    
   } else {
     std::cout << "Fallita inizializzazione simulatore" << std::endl;
   }

@@ -1,6 +1,6 @@
 DEPS = simulatore.h
 OBJ = simulatore.o
-LDFLAGS = -L/opt/openrisc/lib -lsim
+LDLIB = -L/opt/openrisc/lib -lsim
 CFLAGS = -I/opt/openrisc/include
 
 %.o: %.cpp $(DEPS)
@@ -8,7 +8,7 @@ CFLAGS = -I/opt/openrisc/include
 	@ echo "CC $<"
 
 simulatore: $(OBJ)
-	@ $(CXX) -o simulatore $< $(LDFLAGS)
+	@ $(CXX) -o simulatore $< $(LDLIB)
 	@ echo "LD simulatore"
 
 clean: 
