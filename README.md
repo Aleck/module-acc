@@ -2,26 +2,20 @@ module-acc
 ==========
 
 
-############ Cose da fare per realizzare il prototipo
+########## Modulo del device-driver ##########
 
-- ampliare il modulo per fargli leggere e scrive un char
-- capire come funziona il simulatore e provare il SoC
-- fare il porting del modulo per oppenrisc (con Makefile incluso)
-- attaccare al modulo la parte di comunicazione con l'acceleratore
-- scrivere l'handler dell'interrupt
-- test
+Nella cartella module-build si trova l'occorrente per compilare il driver. Il mekefile presuppone che i sorgenti di linux siano presenti in ~/progetti/linux, se così non fosse è possibile configurare il Makefile con un altra directory.
 
+- Per compilare il modulo eseguire make
+- Per installare il modulo nel fs di linux eseguire make install
+- Per il clean e uninstall del modulo eseguire make clean
 
-############ Cose fatte
+Una volta installato il modulo, se si compila linux, l'eseguibile conterrà ed eseguirà all'avvio il modulo installato.
 
-- scrivere un modulo che carica un device nel kernel.
-- aggiungere al device la controparte in /dev/* e gestirla
-- aggiunte le operazioni di apertura, chiusura, lettura e scrittura
-
-############ Cose da fare nell'immediato futuro
+Nota: per compilare il modulo è necessario includere nel $PATH la toolchain per openrisc
+      export PATH=/opt/openrisc/bin:$PATH
 
 
-- fare il porting del codice su openrisc
 
 
-############ Cose da sistemare
+########## Simulatore ##########
