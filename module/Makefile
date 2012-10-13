@@ -36,7 +36,7 @@ install: $(MODULE_NAME).ko
 	@ sed -i '/dir \/modules 755 0 0/d' $(PATH_INITRAMFS)/initramfs.devnodes
 	@ echo "dir /modules 755 0 0" >> $(PATH_INITRAMFS)/initramfs.devnodes
 	@ echo "UPDATING initramfs.devnodes"
-	@ sed -i "/#modole $(MODULE_NAME) loader /d" $(PATH_INITD)/rcS
+	@ sed -i "/#module $(MODULE_NAME) loader /d" $(PATH_INITD)/rcS
 	@ sed -i '/\/$(MODULE_DIRECTORY)\/$(NAME_LOADER)/d' $(PATH_INITD)/rcS
 	@ echo "#module $(MODULE_NAME) loader " >> $(PATH_INITD)/rcS
 	@ echo "/$(MODULE_DIRECTORY)/$(NAME_LOADER)" >> $(PATH_INITD)/rcS

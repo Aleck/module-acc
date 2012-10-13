@@ -9,7 +9,7 @@ then
 fi
 
 # invoke rmmod with all arguments we got
-/sbin/rmmod $module $* || exit 1
+/sbin/rmmod /modules/$module $* || exit 1
 
 # remove nodes
 rm -f /dev/${device}[0] /dev/${device}
