@@ -18,4 +18,12 @@ Nota: per compilare il modulo è necessario includere nel $PATH la toolchain per
 
 
 
-########## Simulatore ##########
+########## Simulatore #########
+
+Nella cartella simulatore si trova l'occorrente per compilare ed eseguire il simulatore. I sorgenti per il makefile sono presenti nella cartella. 
+
+- Per compilare il simulatore eseguire make
+- Per eseguire il simulatore dare il comando ./simulatore -f <path1> <path2>, dove path1 e path2 sono i path relativi ai file or1ksim.cfg e 	vmlinux. Se viene dato solo il comando ./simulatore, il simulatore verrà correttamente eseguito solo se or1ksim.cfg e vmlinux sono 	    	presenti nella cartella corrente.
+- Per uscire dal simulatore e il clean, ritornare sulla console del terminale e fare ctrl+c e poi q. La shell del simulatore si chiuderà     	 automaticamente. A questo punto eseguire make clean.
+
+
