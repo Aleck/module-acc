@@ -29,3 +29,8 @@
 .kdev*
 *.kdev4
 
+#eseguibili vari
+simulatore/simulatore
+simulatore/vmlinux
+simulatore/prova
+prove/test_accesso_memoria
