@@ -60,14 +60,14 @@ int acc_init_module(void) {
 	dev_t device_number = 0;  // for getting the major and minor number
 	
 	if (! request_region(base_address, size_address, name)) {
-		printk(KERN_INFO "%s: can't get I/O port address 0x%lx\n", name, base_address);
+		printk(KERN_ALERT "%s: can't get I/O port address 0x%lx\n", name, base_address);
 		return -ENODEV;
 	}
 
 	// Here we register our device - should not fail thereafter
 	result = register_chrdev(major, name, &acc_fops);	
 	if (result < 0) {
-		printk(KERN_INFO "%s: can't get major number\n", name);
+		printk(KERN_ALERT "%s: can't get major number\n", name);
 		release_region(base_address,size_address);
 		return result;
 	}
