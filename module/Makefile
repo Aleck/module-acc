@@ -44,7 +44,7 @@ install: $(MODULE_NAME).ko
 
 
 uninstall: 
-	@ $(foreach file, $(MODULE_FILE), rm $(PATH_MODULE_DIR)/$(file);)
+	@ $(foreach file, $(MODULE_FILE), rm -f $(PATH_MODULE_DIR)/$(file);)
 	@ rmdir --ignore-fail-on-non-empty $(PATH_MODULE_DIR)
 	@ echo "UNINSTALL $(MODULE_NAME)"
 	@ test -d $(PATH_MODULE_DIR) || sed -i '/dir \/modules 755 0 0/d' $(PATH_INITRAMFS)/initramfs.devnodes

@@ -8,35 +8,34 @@
 #include <linux/ioport.h>       /* device region */
 
 #include <asm/uaccess.h>        /* for writing and reading */
+#include <linux/ioctl.h>
 
-
+#include "acc.h"
 
 
 
 
 
 //******************************************** declarative part ************************************
-MODULE_AUTHOR("Alberto Lucchetti, Davide Gadioli");
-MODULE_LICENSE("GPL");
 
 // the major and minor number
 int major = 0;    //dynamic allocation
 int minor = 0;    //dynamic allocation
 
 //static parameter
-static long base_address = 0x30000000;  // the base device address
-static long size_address = 0x01000000;  // the size of address reserved
-static char* name = "acc";
+static long base_address = BASE_ADDR;  // the base device address
+static long size_address = SIZE_ADDR;  // the size of address reserved
+static char* name = DEVICE_NAME;
 
-//my device to be implemented
-struct acc_dev *acc_device;
 
 //the device's operation available
 struct file_operations acc_fops = {
 	.owner =    THIS_MODULE,
 //	.read  =     acc_read,
 //	.write =     acc_write,
-//	.open  =     acc_open,
+	.open  =     acc_open,
+        .release =   acc_release,
+	.unlocked_ioctl =     acc_ioctl,
 };
 
 
@@ -46,6 +45,49 @@ struct file_operations acc_fops = {
 
 
 
+
+
+//************************** module operation ****************************************
+
+
+static int acc_open(struct inode *inode, struct file *filp) {
+	printk(KERN_INFO "Opened the inode\n");
+	return 0;
+}
+
+
+static int acc_release(struct inode *inode, struct file *filp) {
+	printk(KERN_INFO "Closed the inode\n");	
+	return 0;
+}
+
+
+//the function that the accelerator implement
+static int acc_ioctl(struct inode *inode, struct file *filp,
+                 unsigned int cmd, unsigned long arg) {
+
+	//handle the command request
+	switch(cmd) {
+		case ACC_OPERATION_1:
+		  printk(KERN_INFO "Comando eseguito, parametro=%i\n", arg);
+		  break;
+		
+
+
+		default:
+		  printk(KERN_ALERT "Unreacheble statement\n");
+	}
+
+	return 0;
+}
+
+
+
+
+
+
+
+//*************************************************************************************
 
 
 
@@ -59,10 +101,10 @@ int acc_init_module(void) {
 	int result = 0;
 	dev_t device_number = 0;  // for getting the major and minor number
 	
-	if (! request_region(base_address, size_address, name)) {
-		printk(KERN_ALERT "%s: can't get I/O port address 0x%lx\n", name, base_address);
-		return -ENODEV;
-	}
+//	if (! request_region(base_address, size_address, name)) {
+//		printk(KERN_ALERT "%s: can't get I/O port address 0x%lx\n", name, base_address);
+//		return -ENODEV;
+//	}
 
 	// Here we register our device - should not fail thereafter
 	result = register_chrdev(major, name, &acc_fops);	
