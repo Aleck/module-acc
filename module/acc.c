@@ -28,6 +28,12 @@ static long size_address = SIZE_ADDR;  // the size of address reserved
 static char* name = DEVICE_NAME;
 
 
+//module operation's prototype
+static int acc_open(struct inode *inode, struct file *filp);
+static int acc_release(struct inode *inode, struct file *filp);
+static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+
+
 //the device's operation available
 struct file_operations acc_fops = {
 	.owner =    THIS_MODULE,
@@ -63,19 +69,28 @@ static int acc_release(struct inode *inode, struct file *filp) {
 
 
 //the function that the accelerator implement
-static int acc_ioctl(struct inode *inode, struct file *filp,
-                 unsigned int cmd, unsigned long arg) {
+static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
-	//handle the command request
-	switch(cmd) {
-		case ACC_OPERATION_1:
-		  printk(KERN_INFO "Comando eseguito, parametro=%i\n", arg);
-		  break;
+	/* these controls should always pass, but if the device magic number
+	   isn't unique, they cuold save the day */
+
+	//check the type and number bitfields
+	if (_IOC_TYPE(cmd) != ACC_IOC_MAGIC) return -ENOTTY; // inappropriate ioctl
+	if (_IOC_NR(cmd) > MAX_HW_OPERATION) return -ENOTTY;
+	
+	
+	//check the whole operation
+	if (cmd == ACC_OPERATION) {
+		// get the data from the user app
 		
-
-
-		default:
-		  printk(KERN_ALERT "Unreacheble statement\n");
+		printk(KERN_INFO "Effettuato il comando, mi ha passato: %lu\n", arg);
+		
+		
+		
+		
+		
+	} else {
+		return -ENOTTY;
 	}
 
 	return 0;
