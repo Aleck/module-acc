@@ -10,7 +10,7 @@
 #include <asm/uaccess.h>        /* for writing and reading */
 #include <linux/ioctl.h>        /* for the ioctl function */
 #include <linux/semaphore.h>    /* for the semaphore */
-
+#include <asm/io.h>		/* for read and write in memory */
 
 #include "acc.h"
 
@@ -36,7 +36,7 @@ static int acc_release(struct inode *inode, struct file *filp);
 static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 
 //the device memory
-struct region* my_device_region;
+struct resource* my_device_region;
 
 //the device's operation available
 struct file_operations acc_fops = {
@@ -116,6 +116,9 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		
 		//do the computation, here polling or interrupt
 		kernel_argument->return_value = kernel_argument->param1 + kernel_argument->param2;
+		
+		iowrite32_rep((void *)base_address, kernel_argument, sizeof(struct comand_argument));
+		
 		
 		
 		//write the result in the user space variable (if any return)
