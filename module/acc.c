@@ -35,6 +35,8 @@ static int acc_open(struct inode *inode, struct file *filp);
 static int acc_release(struct inode *inode, struct file *filp);
 static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 
+//the device memory
+struct region* my_device_region;
 
 //the device's operation available
 struct file_operations acc_fops = {
@@ -154,8 +156,10 @@ int acc_init_module(void) {
 	int result = 0;
 	dev_t device_number = 0;  // for getting the major and minor number
 	
-	if (! request_mem_region(base_address, size_address, name)) {
-		printk(KERN_ALERT "%s: can't get I/O port address 0x%lx\n", name, base_address);
+	
+	my_device_region = request_mem_region(base_address, size_address, name);
+	if (my_device_region == NULL) {
+		printk(KERN_ALERT "%s: can't get I/O mem address 0x%lx\n", name, base_address);
 		return -ENODEV;
 	}
 
@@ -163,7 +167,7 @@ int acc_init_module(void) {
 	result = register_chrdev(major, name, &acc_fops);	
 	if (result < 0) {
 		printk(KERN_ALERT "%s: can't get major number\n", name);
-		release_region(base_address,size_address);
+		release_mem_region(base_address,size_address);
 		return result;
 	}
 	
@@ -176,7 +180,7 @@ int acc_init_module(void) {
 	kernel_argument = kmalloc(sizeof(struct comand_argument), GFP_KERNEL);
 	if (!kernel_argument) {
 		printk(KERN_ALERT "%s: can't allocate enough memory\n", name);
-		release_region(base_address,size_address);
+		release_mem_region(base_address,size_address);
 		return -ENOMEM;
 	}
 	
@@ -194,7 +198,7 @@ int acc_init_module(void) {
 
 void acc_cleanup_module(void)
 {
-	release_region(base_address,size_address);
+	release_mem_region(base_address,size_address);
 	kfree(kernel_argument);
 	printk(KERN_INFO "%s: module cleanup OK!\n", name);
 }
