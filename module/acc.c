@@ -20,6 +20,8 @@
 
 
 //******************************************** declarative part ************************************
+MODULE_LICENSE("GPL");
+
 
 // the major and minor number
 int major = 0;    //dynamic allocation
@@ -40,6 +42,7 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 struct resource* my_device_region;
 void __iomem* device_virtual_address;
 
+
 //the device's operation available
 struct file_operations acc_fops = {
 	.owner =    THIS_MODULE,
@@ -53,14 +56,17 @@ struct file_operations acc_fops = {
 //set the semaphore concurrency
 int sem_max_access = 1;    //actually i wont a mutex
 
-
-
 //the kernel's command argument
 struct command_argument* kernel_argument;
 
+
+// the start command, an int?
+const int start_command = 0;
+const int done_command = 1;
+
+
 //for handling concurrency
 struct semaphore kernel_argument_semaphore;
-struct semaphore device_argument_semaphore;
 
 
 
@@ -74,13 +80,11 @@ struct semaphore device_argument_semaphore;
 
 
 static int acc_open(struct inode *inode, struct file *filp) {
-	printk(KERN_INFO "Opened the inode\n");
 	return 0;
 }
 
 
 static int acc_release(struct inode *inode, struct file *filp) {
-	printk(KERN_INFO "Closed the inode\n");	
 	return 0;
 }
 
@@ -107,25 +111,34 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		if (down_interruptible(&kernel_argument_semaphore)) {
     			return -ERESTARTSYS;
  		 }
-		
+ 		 
 		//get the data from the user space
 		result = copy_from_user(kernel_argument, (int __user *)arg, sizeof(struct command_argument));
 		if (result > 0) {
+			up(&kernel_argument_semaphore);
 			printk(KERN_ALERT "%i byte result unwritten from user to kernel, wrong command?\n", result);
 			return -ENOMEM;
 		}
 		
 		
-		//do the computation, here polling or interrupt
+		//do the computation (a fake one for now)
 		kernel_argument->return_value = kernel_argument->param1 + kernel_argument->param2;
 		
-		iowrite32_rep(device_virtual_address, kernel_argument, sizeof(struct command_argument));
+		
+		
+		/* assuming the start register is at lower address */		
+		// write the parameter, taking in account the status size	
+		iowrite32_rep(device_virtual_address + sizeof(int), kernel_argument, sizeof(struct command_argument));
+		
+		// write the start command
+		iowrite32_rep(device_virtual_address, &start_command, sizeof(int));
 		
 		
 		
 		//write the result in the user space variable (if any return)
 		result = copy_to_user((int __user *)arg, kernel_argument, sizeof(struct command_argument));
 		if (result > 0) {
+			up(&kernel_argument_semaphore);
 			printk(KERN_ALERT "%i byte result unwritten from kernel to user, weird!\n", result);
 			return -1;
 		}
@@ -172,7 +185,6 @@ int acc_init_module(void) {
 	
 	// remap the physical address into a virtual
 	device_virtual_address = ioremap(base_address, size_address);
-	printk(KERN_INFO "%s: virtual address: %p\n", name, device_virtual_address);
 	
 	
 	//allocate the space for the device parameters
@@ -186,7 +198,6 @@ int acc_init_module(void) {
 	
 	//initialize the resource semaphore
 	sema_init(&kernel_argument_semaphore, sem_max_access);
-	sema_init(&device_argument_semaphore, sem_max_access);
 	
 
 	// Here we register our device
@@ -204,7 +215,7 @@ int acc_init_module(void) {
 	major = MAJOR(device_number);
 	minor = MINOR(device_number);
 	
-	
+	printk(KERN_INFO "%s: the size of the param is: %i\n", name, sizeof(struct command_argument));
 	printk(KERN_INFO "%s: module init OK!\n", name);
 	
 	return 0;
