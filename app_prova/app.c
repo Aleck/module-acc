@@ -17,7 +17,7 @@ int main() {
 	printf("APP: inode opened\n");
 	
 	
-	struct comand_argument parametri;
+	struct command_argument parametri;
 	parametri.param1 = 1;
 	parametri.param2 = 2;
 	parametri.return_value = 0;

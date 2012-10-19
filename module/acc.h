@@ -15,7 +15,7 @@
 
 
 // the struct that we exchange from user to the module
-struct comand_argument {
+struct command_argument {
 	int param1;
 	int param2;
 	int return_value;
@@ -37,7 +37,7 @@ in the file linux/Documentation/ioctl/ioctl-number.txt */
 
    NB2: the second argument start with 0 and is incresed
    as the number of devices grows */
-#define ACC_OPERATION _IOWR(ACC_IOC_MAGIC, 0, struct comand_argument)
+#define ACC_OPERATION _IOWR(ACC_IOC_MAGIC, 0, struct command_argument)
 
 
 //the total number of devices (starts from zero)

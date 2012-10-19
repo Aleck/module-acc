@@ -12,6 +12,7 @@
 #include <linux/semaphore.h>    /* for the semaphore */
 #include <asm/io.h>		/* for read and write in memory */
 
+
 #include "acc.h"
 
 
@@ -37,6 +38,7 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 
 //the device memory
 struct resource* my_device_region;
+void __iomem* device_virtual_address;
 
 //the device's operation available
 struct file_operations acc_fops = {
@@ -54,7 +56,7 @@ int sem_max_access = 1;    //actually i wont a mutex
 
 
 //the kernel's command argument
-struct comand_argument* kernel_argument;
+struct command_argument* kernel_argument;
 
 //for handling concurrency
 struct semaphore kernel_argument_semaphore;
@@ -107,7 +109,7 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
  		 }
 		
 		//get the data from the user space
-		result = copy_from_user(kernel_argument, (int __user *)arg, sizeof(struct comand_argument));
+		result = copy_from_user(kernel_argument, (int __user *)arg, sizeof(struct command_argument));
 		if (result > 0) {
 			printk(KERN_ALERT "%i byte result unwritten from user to kernel, wrong command?\n", result);
 			return -ENOMEM;
@@ -117,12 +119,12 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		//do the computation, here polling or interrupt
 		kernel_argument->return_value = kernel_argument->param1 + kernel_argument->param2;
 		
-		iowrite32_rep((void *)base_address, kernel_argument, sizeof(struct comand_argument));
+		iowrite32_rep(device_virtual_address, kernel_argument, sizeof(struct command_argument));
 		
 		
 		
 		//write the result in the user space variable (if any return)
-		result = copy_to_user((int __user *)arg, kernel_argument, sizeof(struct comand_argument));
+		result = copy_to_user((int __user *)arg, kernel_argument, sizeof(struct command_argument));
 		if (result > 0) {
 			printk(KERN_ALERT "%i byte result unwritten from kernel to user, weird!\n", result);
 			return -1;
@@ -155,41 +157,52 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
 int acc_init_module(void) {
 	
-	//declaration of the variable
+	// declaration of the variable
 	int result = 0;
 	dev_t device_number = 0;  // for getting the major and minor number
 	
 	
+	// take care of the device memory region
 	my_device_region = request_mem_region(base_address, size_address, name);
 	if (my_device_region == NULL) {
 		printk(KERN_ALERT "%s: can't get I/O mem address 0x%lx\n", name, base_address);
 		return -ENODEV;
 	}
-
-	// Here we register our device - should not fail thereafter
-	result = register_chrdev(major, name, &acc_fops);	
-	if (result < 0) {
-		printk(KERN_ALERT "%s: can't get major number\n", name);
-		release_mem_region(base_address,size_address);
-		return result;
-	}
 	
-	//set the minor and major number
-	major = MAJOR(device_number);
-	minor = MINOR(device_number);
+	
+	// remap the physical address into a virtual
+	device_virtual_address = ioremap(base_address, size_address);
+	printk(KERN_INFO "%s: virtual address: %p\n", name, device_virtual_address);
 	
 	
 	//allocate the space for the device parameters
-	kernel_argument = kmalloc(sizeof(struct comand_argument), GFP_KERNEL);
+	kernel_argument = kmalloc(sizeof(struct command_argument), GFP_KERNEL);
 	if (!kernel_argument) {
 		printk(KERN_ALERT "%s: can't allocate enough memory\n", name);
 		release_mem_region(base_address,size_address);
+		iounmap(device_virtual_address);
 		return -ENOMEM;
 	}
 	
 	//initialize the resource semaphore
 	sema_init(&kernel_argument_semaphore, sem_max_access);
 	sema_init(&device_argument_semaphore, sem_max_access);
+	
+
+	// Here we register our device
+	// WARNING! from here any app can start to call our operation
+	result = register_chrdev(major, name, &acc_fops);	
+	if (result < 0) {
+		printk(KERN_ALERT "%s: can't get major number\n", name);
+		release_mem_region(base_address,size_address);
+		kfree(kernel_argument);
+		iounmap(device_virtual_address);
+		return result;
+	}
+	
+	//set the minor and major number
+	major = MAJOR(device_number);
+	minor = MINOR(device_number);
 	
 	
 	printk(KERN_INFO "%s: module init OK!\n", name);
@@ -203,6 +216,7 @@ void acc_cleanup_module(void)
 {
 	release_mem_region(base_address,size_address);
 	kfree(kernel_argument);
+	iounmap(device_virtual_address);
 	printk(KERN_INFO "%s: module cleanup OK!\n", name);
 }
 
