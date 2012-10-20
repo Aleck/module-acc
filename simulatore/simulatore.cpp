@@ -12,8 +12,6 @@
 #define COMPUTING 1
 #define DONE 2
 
-//transmission mode 32 bit = 4 byte
-#define TX_COEF 4
 
 //the computation delay 
 #define COMPUTATION_DELAY 3
@@ -33,7 +31,7 @@ struct acc_parameter {
 
 
 
-int param_size = (sizeof(struct acc_parameter))*TX_COEF;
+int param_size = sizeof(struct acc_parameter);
 int size_counter = 0;
 struct acc_parameter* acc_param;
 
@@ -60,11 +58,18 @@ int my_write_function(void              *class_ptr,
                       unsigned char      mask[],
                       unsigned char      wdata[],
                       int                data_len) {
-        //offset of the address
+        //debug stuff
+        std::cout << "STUB: data_len vale " << data_len << std::endl;;
+        
+        //calcolo l'offset dell'indirizzo
+        unsigned long int offset = addr - BASE_ADDR;
+        
         //write the data in my memory
-	for(int index=0; index < sizeof(wdata); index++) {
-		//memset(acc_param + sizeof(unsigned char)*index*TX_COEF + size_counter, wdata[index], sizeof(unsigned char));
-		std::cout << "STUB: Received char " << (int)wdata[index] << std::endl;;
+	for(int index=0; (index < sizeof(wdata)) && (index < data_len); index++) {
+		memset(acc_param + offset, wdata[index], sizeof(unsigned char));
+		std::cout << "STUB: ottenuto un offset di " << offset << std::endl;;
+		offset++;
+		std::cout << "STUB: received char " << (int)wdata[index] << std::endl;;
 	}
         
         //update the size counter

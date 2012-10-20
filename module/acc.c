@@ -92,7 +92,7 @@ static int acc_release(struct inode *inode, struct file *filp) {
 //the function that the accelerator implement
 static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
-	int result = 0;
+	int result,index,offset,tx_byte, count = 0;
 
 
 	/* these controls should always pass, but if the device magic number
@@ -126,12 +126,20 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		
 		
 		
-		/* assuming the start register is at lower address */		
-		// write the parameter, taking in account the status size	
-		iowrite32_rep(device_virtual_address + sizeof(int), kernel_argument, sizeof(struct command_argument));
+		//********* send the params to the device addr **********
+		// the size of the status register, for now it is an int
+		offset = sizeof(int);
+		// it's 4 because 32 bits are 4 bytes
+		tx_byte = 4;
+		// for now it's useless
+		count = 1;
+		for(index = 0; index < sizeof(struct command_argument); index+=tx_byte) {
+			iowrite32_rep(device_virtual_address + index + offset, kernel_argument + index, count);
+		}
 		
-		// write the start command
-		iowrite32_rep(device_virtual_address, &start_command, sizeof(int));
+		
+		//********* send the start to the device addr **********
+		iowrite32_rep(device_virtual_address, &start_command, 1);
 		
 		
 		

@@ -9,7 +9,7 @@ int main() {
 	int result = 0;
 	acc = fopen("/dev/acc0", "r+");
 	struct command_argument parametri;
-	parametri.param1 = 1;
+	parametri.param1 = 99;
 	parametri.param2 = 2;
 	parametri.return_value = 0;
 	result = ioctl(fileno(acc), ACC_OPERATION, &parametri);
