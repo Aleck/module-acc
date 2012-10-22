@@ -92,7 +92,9 @@ static int acc_release(struct inode *inode, struct file *filp) {
 //the function that the accelerator implement
 static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
-	int result,index,offset,tx_byte, count = 0;
+	int result = 0;
+	unsigned int offset = 0;
+	size_t tx_byte = 0;
 
 
 	/* these controls should always pass, but if the device magic number
@@ -118,28 +120,29 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 			up(&kernel_argument_semaphore);
 			printk(KERN_ALERT "%i byte result unwritten from user to kernel, wrong command?\n", result);
 			return -ENOMEM;
-		}
-		
-		
-		//do the computation (a fake one for now)
-		kernel_argument->return_value = kernel_argument->param1 + kernel_argument->param2;
-		
-		
+		}		
 		
 		//********* send the params to the device addr **********
 		// the size of the status register, for now it is an int
 		offset = sizeof(int);
-		// it's 4 because 32 bits are 4 bytes
-		tx_byte = 4;
-		// for now it's useless
-		count = 1;
-		for(index = 0; index < sizeof(struct command_argument); index+=tx_byte) {
-			iowrite32_rep(device_virtual_address + index + offset, kernel_argument + index, count);
+		
+		// 32 bit are 4 byte
+		for(tx_byte = 0; tx_byte < sizeof(struct command_argument); tx_byte+=4) {
+			iowrite32_rep(device_virtual_address + tx_byte + offset, ((void *)kernel_argument) + tx_byte, 1);
 		}
 		
 		
 		//********* send the start to the device addr **********
 		iowrite32_rep(device_virtual_address, &start_command, 1);
+		
+		
+		
+		// now there is the polling stuff (for now is immediate)
+		
+		
+		
+		//******* read the result *********
+		
 		
 		
 		

@@ -2,6 +2,7 @@
 #include <string.h>
 #include <or1ksim.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #define BASE_ADDR  0x30000000
 
@@ -45,10 +46,16 @@ int my_read_function(void              *class_ptr,
                     unsigned char      mask[],
                     unsigned char      rdata[],
                     int                data_len) {
-  
-  
-  
-  return -1;
+	// debug 
+	
+	
+	
+	
+	
+	
+	
+	
+	return 0;
 }
 
 
@@ -58,26 +65,60 @@ int my_write_function(void              *class_ptr,
                       unsigned char      mask[],
                       unsigned char      wdata[],
                       int                data_len) {
-        //debug stuff
-        std::cout << "STUB: data_len vale " << data_len << std::endl;;
+                      
+                      
+        std::cout << "************ write started *************" << std::endl;
         
-        //calcolo l'offset dell'indirizzo
+        // get the offset
         unsigned long int offset = addr - BASE_ADDR;
         
-        //write the data in my memory
-	for(int index=0; (index < sizeof(wdata)) && (index < data_len); index++) {
-		memset(acc_param + offset, wdata[index], sizeof(unsigned char));
-		std::cout << "STUB: ottenuto un offset di " << offset << std::endl;;
-		offset++;
-		std::cout << "STUB: received char " << (int)wdata[index] << std::endl;;
-	}
+        
+        std::cout << "STUB: received char " << (int) wdata[0] <<(int) wdata[1] <<(int) wdata[2] <<(int) wdata[3] << std::endl;
+        switch(offset) {
+        	case 0:
+        		std::cout << "STUB: at offset  " << offset << " so it's the state" << std::endl;
+        		acc_param->state = 0;
+        		for(int index = 0; index < data_len; index++) {
+        			acc_param->return_value += (int)wdata[data_len - (index + 1)] << index*8;
+        		}
+        		break;
+        	case 4:
+        		std::cout << "STUB: at offset  " << offset << " so it's return_value" << std::endl;
+        		acc_param->return_value = 0;
+        		for(int index = 0; index < data_len; index++) {
+        			acc_param->return_value += (int)wdata[data_len - (index + 1)] << index*8;
+        		}
+        		break;
+        	case 8:
+        		std::cout << "STUB: at offset  " << offset << " so it's param1" << std::endl;
+        		acc_param->param1 = 0;
+        		for(int index = 0; index < data_len; index++) {
+        			acc_param->param1 += (int)wdata[data_len - (index + 1)] << index*8;
+        		}
+        		break;
+        	case 12:
+        		std::cout << "STUB: at offset  " << offset << " so it's param2" << std::endl;
+        		acc_param->param2 = 0;
+        		for(int index = 0; index < data_len; index++) {
+        			acc_param->param2 += (int)wdata[data_len - (index + 1)] << index*8;
+        		}
+        		break;
+        	default:
+        		std::cout << "Unreachable statement" << std::endl;
+        }
         
         //update the size counter
         size_counter += data_len;
         
 	//print the written memory
-	std::cout << "STUB: Received  " << size_counter << " bit over " << param_size << std::endl;
+	std::cout << "STUB: Received  " << size_counter << " byte over " << param_size << std::endl;
 	
+	std::cout << "Per ora ho ricevuto:" << std::endl;
+	std::cout << " --> stato = " << acc_param->state << std::endl;
+	std::cout << " --> param1 = " << acc_param->param1 << std::endl;
+	std::cout << " --> param2 = " << acc_param->param2 << std::endl;
+	std::cout << " --> risultato = " << acc_param->return_value << std::endl;
+	std::cout << "************ write done *************" << std::endl;
 	
 	// when the transmission is done, start the computation
 	if (size_counter == param_size) {
@@ -107,6 +148,14 @@ void acc_function() {
 	
 	acc_param->state = DONE;
 	unit_count = COMPUTATION_DELAY;
+}
+
+
+
+
+void interrupt_function() {
+	std::cout << "****** activate the interrupt *******" << std::endl;
+	acc_param->state = READY;
 }
 
 
@@ -146,9 +195,11 @@ int main(int argc, char* argv[]) {
  
   		if (acc_param->state == COMPUTING) {
   			unit_count--;
-  			std::cout << "STUB: Computation start in t -" << unit_count << std::endl;
   			if (unit_count == 0) acc_function();
+  				else std::cout << "STUB: Computation start in t -" << unit_count << std::endl;
   		}
+  		
+  		if (acc_param->state == DONE) interrupt_function();
   	}
   } else {
   	std::cout << "Fallita inizializzazione simulatore" << std::endl;
