@@ -7,10 +7,12 @@
 
 
 
-//accelerator parameter
+//accelerator parameters
 #define BASE_ADDR 0x30000000
 #define SIZE_ADDR 0x01000000
 #define DEVICE_NAME "acc"
+//interrupt parameters
+#define IRQ_LINE 5
 
 
 
