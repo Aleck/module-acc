@@ -11,6 +11,9 @@
 #include <linux/ioctl.h>        /* for the ioctl function */
 #include <linux/semaphore.h>    /* for the semaphore */
 #include <asm/io.h>		/* for read and write in memory */
+#include <linux/time.h>         /* for the polling */
+#include <linux/sched.h>        /* for the polling */
+#include <linux/delay.h>        /* for the polling */
 
 
 #include "acc.h"
@@ -62,7 +65,7 @@ struct command_argument* kernel_argument;
 
 // the start command, an int?
 const int start_command = 0;
-const int done_command = 1;
+const int done_status = DONE_STATUS_VALUE;
 
 
 //for handling concurrency
@@ -122,6 +125,11 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 			return -ENOMEM;
 		}		
 		
+		
+		// just for debug
+		kernel_argument->return_value = kernel_argument->param1 + kernel_argument->param2;
+		
+		
 		//********* send the params to the device addr **********
 		// the size of the status register, for now it is an int
 		offset = sizeof(int);
@@ -137,14 +145,25 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		
 		
 		
-		// now there is the polling stuff (for now is immediate)
+		// this is a polling?
+		while(1) {
+			// read the state of the register
+			int state = ioread32(device_virtual_address);
+			
+			printk(KERN_ALERT "****** controllo stato *******\n");
+			
+			// check if the computation is done
+			if (state == done_status) {
+				break;
+			}
 		
+			// if not wait a millisecond
+			msleep(1000);	
+		}
 		
-		
-		//******* read the result *********
-		
-		
-		
+		// ************ read the result ***********
+		//for an int it's easy
+		kernel_argument->return_value = ioread32(device_virtual_address + offset);
 		
 		//write the result in the user space variable (if any return)
 		result = copy_to_user((int __user *)arg, kernel_argument, sizeof(struct command_argument));

@@ -15,7 +15,7 @@
 
 
 //the computation delay 
-#define COMPUTATION_DELAY 3
+#define COMPUTATION_DELAY 2
 #define UNIT_DELAY 0.5 //(in ms)
 
 
@@ -41,20 +41,75 @@ int unit_count = COMPUTATION_DELAY;
 
 
 
+
+
+
+void acc_function() {
+	//debug stuff
+	std::cout << "I dati che computo sono:" << std::endl;
+	std::cout << " --> stato = " << acc_param->state << std::endl;
+	std::cout << " --> param1 = " << acc_param->param1 << std::endl;
+	std::cout << " --> param2 = " << acc_param->param2 << std::endl;
+	std::cout << " --> risultato = " << acc_param->return_value << std::endl;
+	
+	
+	//do the computation
+	acc_param->return_value = acc_param->param1 + acc_param->param2;
+	
+	std::cout << "=> risultato = " << acc_param->return_value << std::endl;
+	
+	acc_param->state = DONE;
+	unit_count = COMPUTATION_DELAY;
+}
+
+
+
+
+
+
+
 int my_read_function(void              *class_ptr,
                     unsigned long int  addr,
                     unsigned char      mask[],
                     unsigned char      rdata[],
                     int                data_len) {
-	// debug 
-	
-	
-	
-	
-	
-	
-	
-	
+	std::cout << "************ read started *************" << std::endl;
+	std::cout << "STUB: lenght: " << data_len << std::endl;
+	std::cout << "STUB: countdown: " << unit_count << std::endl;
+	// get the offset
+        unsigned long int offset = addr - BASE_ADDR;
+        unsigned char read_element = 0;
+        
+        // set the data_len
+        data_len = 4;
+        
+	switch(offset) {
+		case 0:
+			std::cout << "STUB: read at offset  " << offset << " so it's the state" << std::endl;
+			std::cout << "STUB: i want send " << acc_param->state << std::endl;
+			for(int index = 0; index < data_len; index++) {
+				read_element = acc_param->state >> index*8;
+				std::cout << "STUB: the element " << index << " is " << (int)read_element << std::endl;
+				rdata[index] = (int)read_element;
+        		}
+        		break;
+        	case 4:
+			std::cout << "STUB: read at offset  " << offset << " so it's the return_value" << std::endl;
+			std::cout << "STUB: i want send " << acc_param->return_value << std::endl;
+			for(int index = 0; index < data_len; index++) {
+				read_element = acc_param->return_value >> index*8;
+				std::cout << "STUB: the element " << index << " is " << (int)read_element << std::endl;
+				rdata[index] = (int)read_element;
+        		}
+        		
+        		acc_param->state = READY;
+        		
+        		break;
+		default:
+			std::cout << "Unreachable statement" << std::endl;
+	}
+	std::cout << "STUB: send char " << (int) rdata[0] << " " << (int) rdata[1] << " " <<  (int) rdata[2] << " " << (int) rdata[3] << std::endl;
+	std::cout << "************ read done *************" << std::endl;
 	return 0;
 }
 
@@ -73,7 +128,7 @@ int my_write_function(void              *class_ptr,
         unsigned long int offset = addr - BASE_ADDR;
         
         
-        std::cout << "STUB: received char " << (int) wdata[0] <<(int) wdata[1] <<(int) wdata[2] <<(int) wdata[3] << std::endl;
+        std::cout << "STUB: received char " << (int) wdata[0] << " " << (int) wdata[1] << " " <<  (int) wdata[2] << " " << (int) wdata[3] << std::endl;
         switch(offset) {
         	case 0:
         		std::cout << "STUB: at offset  " << offset << " so it's the state" << std::endl;
@@ -131,28 +186,6 @@ int my_write_function(void              *class_ptr,
 
 
 
-
-void acc_function() {
-	//debug stuff
-	std::cout << "I dati che computo sono:" << std::endl;
-	std::cout << " --> stato = " << acc_param->state << std::endl;
-	std::cout << " --> param1 = " << acc_param->param1 << std::endl;
-	std::cout << " --> param2 = " << acc_param->param2 << std::endl;
-	std::cout << " --> risultato = " << acc_param->return_value << std::endl;
-	
-	
-	//do the computation
-	acc_param->return_value = acc_param->param1 + acc_param->param2;
-	
-	std::cout << "=> risultato = " << acc_param->return_value << std::endl;
-	
-	acc_param->state = DONE;
-	unit_count = COMPUTATION_DELAY;
-}
-
-
-
-
 void interrupt_function() {
 	std::cout << "****** activate the interrupt *******" << std::endl;
 	acc_param->state = READY;
@@ -195,11 +228,10 @@ int main(int argc, char* argv[]) {
  
   		if (acc_param->state == COMPUTING) {
   			unit_count--;
-  			if (unit_count == 0) acc_function();
+  			if (unit_count <= 0) acc_function();
   				else std::cout << "STUB: Computation start in t -" << unit_count << std::endl;
   		}
   		
-  		if (acc_param->state == DONE) interrupt_function();
   	}
   } else {
   	std::cout << "Fallita inizializzazione simulatore" << std::endl;

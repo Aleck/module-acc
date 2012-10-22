@@ -21,6 +21,8 @@ int main() {
 	
 	if (!(parametri.return_value == parametri.param1 + parametri.param2)) {
 		printf("APP: the return value is: %i\n", parametri.return_value);
+	} else {
+		printf("APP: Funziona!!!!!!!!!!!!!!\n", parametri.return_value);
 	}
 	fclose(acc);
 	return 0;

@@ -11,7 +11,7 @@
 #define BASE_ADDR 0x30000000
 #define SIZE_ADDR 0x01000000
 #define DEVICE_NAME "acc"
-
+#define DONE_STATUS_VALUE 2
 
 
 // the struct that we exchange from user to the module
