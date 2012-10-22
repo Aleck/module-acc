@@ -36,7 +36,7 @@ int param_size = sizeof(struct acc_parameter);
 int size_counter = 0;
 struct acc_parameter* acc_param;
 
-//the computation thick delay ( 1 thik = 100ms)
+//the computation tick delay ( 1 tick = 100ms)
 int unit_count = COMPUTATION_DELAY;
 
 
@@ -46,20 +46,22 @@ int unit_count = COMPUTATION_DELAY;
 
 void acc_function() {
 	//debug stuff
-	std::cout << "I dati che computo sono:" << std::endl;
-	std::cout << " --> stato = " << acc_param->state << std::endl;
+	std::cout << "******** let's do my job ********" << std::endl;
+	std::cout << "My data are:" << std::endl;
+	std::cout << " --> state = " << acc_param->state << std::endl;
 	std::cout << " --> param1 = " << acc_param->param1 << std::endl;
 	std::cout << " --> param2 = " << acc_param->param2 << std::endl;
-	std::cout << " --> risultato = " << acc_param->return_value << std::endl;
+	std::cout << " --> return_value = " << acc_param->return_value << std::endl;
 	
 	
 	//do the computation
 	acc_param->return_value = acc_param->param1 + acc_param->param2;
 	
-	std::cout << "=> risultato = " << acc_param->return_value << std::endl;
+	std::cout << "=> i got " << acc_param->return_value << std::endl;
 	
 	acc_param->state = DONE;
 	unit_count = COMPUTATION_DELAY;
+	size_counter = 0;
 }
 
 
@@ -74,8 +76,6 @@ int my_read_function(void              *class_ptr,
                     unsigned char      rdata[],
                     int                data_len) {
 	std::cout << "************ read started *************" << std::endl;
-	std::cout << "STUB: lenght: " << data_len << std::endl;
-	std::cout << "STUB: countdown: " << unit_count << std::endl;
 	// get the offset
         unsigned long int offset = addr - BASE_ADDR;
         unsigned char read_element = 0;
@@ -168,12 +168,11 @@ int my_write_function(void              *class_ptr,
 	//print the written memory
 	std::cout << "STUB: Received  " << size_counter << " byte over " << param_size << std::endl;
 	
-	std::cout << "Per ora ho ricevuto:" << std::endl;
-	std::cout << " --> stato = " << acc_param->state << std::endl;
+	std::cout << "My new data are:" << std::endl;
+	std::cout << " --> state = " << acc_param->state << std::endl;
 	std::cout << " --> param1 = " << acc_param->param1 << std::endl;
 	std::cout << " --> param2 = " << acc_param->param2 << std::endl;
-	std::cout << " --> risultato = " << acc_param->return_value << std::endl;
-	std::cout << "************ write done *************" << std::endl;
+	std::cout << " --> return_value = " << acc_param->return_value << std::endl;
 	
 	// when the transmission is done, start the computation
 	if (size_counter == param_size) {

@@ -126,10 +126,6 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		}		
 		
 		
-		// just for debug
-		kernel_argument->return_value = kernel_argument->param1 + kernel_argument->param2;
-		
-		
 		//********* send the params to the device addr **********
 		// the size of the status register, for now it is an int
 		offset = sizeof(int);
@@ -147,10 +143,9 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		
 		// this is a polling?
 		while(1) {
+		
 			// read the state of the register
 			int state = ioread32(device_virtual_address);
-			
-			printk(KERN_ALERT "****** controllo stato *******\n");
 			
 			// check if the computation is done
 			if (state == done_status) {
