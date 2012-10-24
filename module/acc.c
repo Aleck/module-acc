@@ -212,13 +212,13 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
 
 // the interupt handler
-irqreturn_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
+irq_handler_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
 
 
+	printk (KERN_ALERT "INTERRUPT!!!!!!!\n");
 
 
-
-	return IRQ_HANDLED;
+	return (irq_handler_t)IRQ_HANDLED;
 }
 
 
@@ -256,7 +256,7 @@ int acc_init_module(void) {
 	device_virtual_address = ioremap(base_address, size_address);
 	
 	// initialize the interrupt handler
-	result = request_irq(irq, acc_handler, IRQF_SHARED, name, NULL);
+	result = request_irq(irq, (irq_handler_t) acc_handler, IRQF_SHARED, name, (void*)(acc_handler));
 	if(result) {
 		printk(KERN_ALERT "%s: can't register interface interrupt \n", name);
 		free_irq(irq, NULL);

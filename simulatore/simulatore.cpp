@@ -14,11 +14,13 @@
 #define DONE 2
 
 
-//the computation delay 
+// the computation delay 
 #define COMPUTATION_DELAY 2
 #define UNIT_DELAY 0.5 //(in ms)
 
 
+// the interrupt line
+#define IRQ_LINE 5
 
 
 //the struct used by the module
@@ -59,9 +61,15 @@ void acc_function() {
 	
 	std::cout << "=> i got " << acc_param->return_value << std::endl;
 	
+	
+	
+	// reset the stub status
 	acc_param->state = DONE;
 	unit_count = COMPUTATION_DELAY;
 	size_counter = 0;
+	
+	// call the interrupt
+	or1ksim_interrupt(IRQ_LINE);
 }
 
 
@@ -182,17 +190,6 @@ int my_write_function(void              *class_ptr,
 	
 	return 0;
 }
-
-
-
-void interrupt_function() {
-	std::cout << "****** activate the interrupt *******" << std::endl;
-	acc_param->state = READY;
-}
-
-
-
-
 
 
 
