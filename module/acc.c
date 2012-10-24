@@ -17,7 +17,6 @@
 #include <linux/delay.h>        /* for the polling */
 
 #include <linux/interrupt.h>	/* for the interrupt */
-#include <asm/signal.h>		/* for the interrupt flags */
 
 
 
@@ -212,6 +211,20 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
 
 
+// the interupt handler
+irqreturn_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
+
+
+
+
+
+	return IRQ_HANDLED;
+}
+
+
+
+
+
 
 
 
@@ -243,8 +256,8 @@ int acc_init_module(void) {
 	device_virtual_address = ioremap(base_address, size_address);
 	
 	// initialize the interrupt handler
-	int result_i = request_irq(irq, /*handler*/, SA_INTERRUPT, name, NULL);
-	if(result_i) {
+	result = request_irq(irq, acc_handler, IRQF_SHARED, name, NULL);
+	if(result) {
 		printk(KERN_ALERT "%s: can't register interface interrupt \n", name);
 		free_irq(irq, NULL);
 		return -EBUSY;
