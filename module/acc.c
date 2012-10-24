@@ -96,7 +96,8 @@ static int acc_release(struct inode *inode, struct file *filp) {
 static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
 	int result = 0;
-	unsigned int offset = 0;
+	unsigned int offset, offset_param = 0;
+	size_t tx_byte_total, tx_byte_32, tx_byte_16, tx_byte_8 = 0;
 	size_t tx_byte = 0;
 
 
@@ -130,9 +131,33 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		// the size of the status register, for now it is an int
 		offset = sizeof(int);
 		
-		// 32 bit are 4 byte
-		for(tx_byte = 0; tx_byte < sizeof(struct command_argument); tx_byte+=4) {
+		
+		
+		//check the size of the param
+		tx_byte_total = sizeof(struct command_argument);
+		tx_byte_32 = (tx_byte_total/4)*4;
+		tx_byte_16 = ((tx_byte_total - tx_byte_32) / 2)*2;
+		tx_byte_8 =  tx_byte_total - tx_byte_32 - tx_byte_16;
+		
+		
+		// send the 32 bit struct part
+		for(tx_byte = 0; tx_byte < tx_byte_32; tx_byte+=4) {
 			iowrite32_rep(device_virtual_address + tx_byte + offset, ((void *)kernel_argument) + tx_byte, 1);
+		}
+		
+		offset_param = tx_byte_32;
+		
+		
+		// send the 16 bit struct part
+		for(tx_byte = 0; tx_byte < tx_byte_16; tx_byte+=2) {
+			iowrite16_rep(device_virtual_address + tx_byte + offset + offset_param, ((void *)kernel_argument) + tx_byte + offset_param, 1);
+		}
+		
+		offset_param += tx_byte_16;
+		
+		// send the 8 bit struct part
+		for(tx_byte = 0; tx_byte < tx_byte_8; tx_byte+=1) {
+			iowrite8_rep(device_virtual_address + tx_byte + offset + offset_param, ((void *)kernel_argument) + tx_byte + offset_param, 1);
 		}
 		
 		
