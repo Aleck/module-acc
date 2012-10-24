@@ -257,9 +257,12 @@ int acc_init_module(void) {
 	
 	// initialize the interrupt handler
 	result = request_irq(irq, (irq_handler_t) acc_handler, IRQF_SHARED, name, (void*)(acc_handler));
+	printk(KERN_ALERT "result vale : %i \n", result);
 	if(result) {
 		printk(KERN_ALERT "%s: can't register interface interrupt \n", name);
 		free_irq(irq, NULL);
+		release_mem_region(base_address,size_address);
+		iounmap(device_virtual_address);
 		return -EBUSY;
 	}
 	enable_irq(irq);
