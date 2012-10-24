@@ -17,11 +17,10 @@
 #include <linux/delay.h>        /* for the polling */
 
 #include <linux/interrupt.h>	/* for the interrupt */
-
+#include <linux/wait.h>		/* for the waiting queue */
 
 
 #include "acc.h"
-
 
 
 
@@ -77,6 +76,9 @@ struct semaphore kernel_argument_semaphore;
 
 //interrupt parameters
 unsigned int irq = IRQ_LINE;
+static DECLARE_WAIT_QUEUE_HEAD(queue);
+static int flags = 0;
+
 
 //****************************************************************************************************
 
@@ -169,9 +171,11 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		//********* send the start to the device addr **********
 		iowrite32_rep(device_virtual_address, &start_command, 1);
 		
+		//sleep and wait for the interrupt
+		wait_event_interruptible(queue, flags != 0);
 		
-		
-		// this is a polling?
+		/*
+		// this is a polling
 		while(1) {
 		
 			// read the state of the register
@@ -185,7 +189,7 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 			// if not wait a millisecond
 			msleep(1000);	
 		}
-		
+		*/
 		// ************ read the result ***********
 		//for an int it's easy
 		kernel_argument->return_value = ioread32(device_virtual_address + offset);
@@ -214,9 +218,8 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 // the interupt handler
 irq_handler_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
 
-
-	printk (KERN_ALERT "INTERRUPT!!!!!!!\n");
-
+	wake_up_interruptible(&queue);
+	flags = 1;
 
 	return (irq_handler_t)IRQ_HANDLED;
 }
@@ -265,7 +268,6 @@ int acc_init_module(void) {
 		iounmap(device_virtual_address);
 		return -EBUSY;
 	}
-	enable_irq(irq);
 	
 	
 	//allocate the space for the device parameters
