@@ -217,10 +217,8 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 
 // the interupt handler
 irq_handler_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
-
-	wake_up_interruptible(&queue);
 	flags = 1;
-
+	wake_up_interruptible(&queue);
 	return (irq_handler_t)IRQ_HANDLED;
 }
 
@@ -266,7 +264,7 @@ int acc_init_module(void) {
 		free_irq(irq, NULL);
 		release_mem_region(base_address,size_address);
 		iounmap(device_virtual_address);
-		return -EBUSY;
+		return result;
 	}
 	
 	
