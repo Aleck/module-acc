@@ -7,11 +7,17 @@
 
 
 
-//accelerator parameter
+//accelerator parameters
 #define BASE_ADDR 0x30000000
 #define SIZE_ADDR 0x01000000
 #define DEVICE_NAME "acc"
+<<<<<<< HEAD
 #define DONE_STATUS_VALUE 2
+=======
+//interrupt parameters
+#define IRQ_LINE 5
+
+>>>>>>> 809e64169bb48adc089b13f934281236129e40d1
 
 
 // the struct that we exchange from user to the module

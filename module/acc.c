@@ -11,9 +11,14 @@
 #include <linux/ioctl.h>        /* for the ioctl function */
 #include <linux/semaphore.h>    /* for the semaphore */
 #include <asm/io.h>		/* for read and write in memory */
+
 #include <linux/time.h>         /* for the polling */
 #include <linux/sched.h>        /* for the polling */
 #include <linux/delay.h>        /* for the polling */
+
+#include <linux/interrupt.h>	/* for the interrupt */
+#include <asm/signal.h>		/* for the interrupt flags */
+
 
 
 #include "acc.h"
@@ -71,7 +76,8 @@ const int done_status = DONE_STATUS_VALUE;
 //for handling concurrency
 struct semaphore kernel_argument_semaphore;
 
-
+//interrupt parameters
+unsigned int irq = IRQ_LINE;
 
 //****************************************************************************************************
 
@@ -236,6 +242,15 @@ int acc_init_module(void) {
 	// remap the physical address into a virtual
 	device_virtual_address = ioremap(base_address, size_address);
 	
+	// initialize the interrupt handler
+	int result_i = request_irq(irq, /*handler*/, SA_INTERRUPT, name, NULL);
+	if(result_i) {
+		printk(KERN_ALERT "%s: can't register interface interrupt \n", name);
+		free_irq(irq, NULL);
+		return -EBUSY;
+	}
+	enable_irq(irq);
+	
 	
 	//allocate the space for the device parameters
 	kernel_argument = kmalloc(sizeof(struct command_argument), GFP_KERNEL);
@@ -278,6 +293,8 @@ void acc_cleanup_module(void)
 	release_mem_region(base_address,size_address);
 	kfree(kernel_argument);
 	iounmap(device_virtual_address);
+	disable_irq(irq);
+	free_irq(irq, NULL);
 	printk(KERN_INFO "%s: module cleanup OK!\n", name);
 }
 
