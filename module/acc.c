@@ -261,7 +261,7 @@ int acc_init_module(void) {
 	printk(KERN_ALERT "result vale : %i \n", result);
 	if(result) {
 		printk(KERN_ALERT "%s: can't register interface interrupt \n", name);
-		free_irq(irq, NULL);
+		free_irq(irq, (void*)(acc_handler));
 		release_mem_region(base_address,size_address);
 		iounmap(device_virtual_address);
 		return result;
@@ -273,6 +273,7 @@ int acc_init_module(void) {
 	if (!kernel_argument) {
 		printk(KERN_ALERT "%s: can't allocate enough memory\n", name);
 		release_mem_region(base_address,size_address);
+		free_irq(irq, (void*)(acc_handler));
 		iounmap(device_virtual_address);
 		return -ENOMEM;
 	}
@@ -287,6 +288,7 @@ int acc_init_module(void) {
 	if (result < 0) {
 		printk(KERN_ALERT "%s: can't get major number\n", name);
 		release_mem_region(base_address,size_address);
+		free_irq(irq, (void*)(acc_handler));
 		kfree(kernel_argument);
 		iounmap(device_virtual_address);
 		return result;
@@ -310,7 +312,7 @@ void acc_cleanup_module(void)
 	kfree(kernel_argument);
 	iounmap(device_virtual_address);
 	disable_irq(irq);
-	free_irq(irq, NULL);
+	free_irq(irq, (void*)(acc_handler));
 	printk(KERN_INFO "%s: module cleanup OK!\n", name);
 }
 
