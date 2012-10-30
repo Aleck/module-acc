@@ -204,6 +204,8 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		
 		//release the semaphore
 		up(&kernel_argument_semaphore);
+		//reset flags variable
+		flags = 0;
 		
 		
 	} else {
@@ -218,8 +220,8 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 // the interupt handler
 irq_handler_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
 
-	wake_up_interruptible(&queue);
 	flags = 1;
+	wake_up_interruptible(&queue);
 
 	return (irq_handler_t)IRQ_HANDLED;
 }
