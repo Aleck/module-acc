@@ -172,9 +172,9 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		iowrite32_rep(device_virtual_address, &start_command, 1);
 		
 		//sleep and wait for the interrupt
-		wait_event_interruptible(queue, flags != 0);
+		//wait_event_interruptible(queue, flags != 0);
 		
-		/*
+		
 		// this is a polling
 		while(1) {
 		
@@ -189,7 +189,7 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 			// if not wait a millisecond
 			msleep(1000);	
 		}
-		*/
+		
 		// ************ read the result ***********
 		//for an int it's easy
 		kernel_argument->return_value = ioread32(device_virtual_address + offset);
@@ -259,7 +259,7 @@ int acc_init_module(void) {
 	
 	// remap the physical address into a virtual
 	device_virtual_address = ioremap(base_address, size_address);
-	
+	/*
 	// initialize the interrupt handler
 	result = request_irq(irq, (irq_handler_t) acc_handler, IRQF_SHARED, name, (void*)(acc_handler));
 	printk(KERN_ALERT "result vale : %i \n", result);
@@ -271,13 +271,13 @@ int acc_init_module(void) {
 		return result;
 	}
 	
-	
+	*/
 	//allocate the space for the device parameters
 	kernel_argument = kmalloc(sizeof(struct command_argument), GFP_KERNEL);
 	if (!kernel_argument) {
 		printk(KERN_ALERT "%s: can't allocate enough memory\n", name);
 		release_mem_region(base_address,size_address);
-		free_irq(irq, (void*)(acc_handler));
+		//free_irq(irq, (void*)(acc_handler));
 		iounmap(device_virtual_address);
 		return -ENOMEM;
 	}
@@ -292,7 +292,7 @@ int acc_init_module(void) {
 	if (result < 0) {
 		printk(KERN_ALERT "%s: can't get major number\n", name);
 		release_mem_region(base_address,size_address);
-		free_irq(irq, (void*)(acc_handler));
+		//free_irq(irq, (void*)(acc_handler));
 		kfree(kernel_argument);
 		iounmap(device_virtual_address);
 		return result;
@@ -315,8 +315,7 @@ void acc_cleanup_module(void)
 	release_mem_region(base_address,size_address);
 	kfree(kernel_argument);
 	iounmap(device_virtual_address);
-	disable_irq(irq);
-	free_irq(irq, (void*)(acc_handler));
+	//free_irq(irq, (void*)(acc_handler));
 	printk(KERN_INFO "%s: module cleanup OK!\n", name);
 }
 
