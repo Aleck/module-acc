@@ -9,7 +9,7 @@
 
 //accelerator parameters
 #define BASE_ADDR 0xa0000000
-#define SIZE_ADDR 0x00000010
+#define SIZE_ADDR 0x00000014
 #define DEVICE_NAME "acc"
 #define DONE_STATUS_VALUE 2
 
