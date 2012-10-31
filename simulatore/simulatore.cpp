@@ -4,14 +4,14 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define BASE_ADDR  0x30000000
+#define BASE_ADDR  0xa0000000
 
 
 
 // state value
 #define READY 0
 #define COMPUTING 1
-#define DONE 2
+#define DONE 0x02
 
 
 // the computation delay 
@@ -29,6 +29,7 @@ struct acc_parameter {
 	int return_value;
 	int param1;
 	int param2;
+	int param3;
 };
 
 
@@ -53,11 +54,12 @@ void acc_function() {
 	std::cout << " --> state = " << acc_param->state << std::endl;
 	std::cout << " --> param1 = " << acc_param->param1 << std::endl;
 	std::cout << " --> param2 = " << acc_param->param2 << std::endl;
+	std::cout << " --> param3 = " << acc_param->param3 << std::endl;
 	std::cout << " --> return_value = " << acc_param->return_value << std::endl;
 	
 	
 	//do the computation
-	acc_param->return_value = acc_param->param1 + acc_param->param2;
+	acc_param->return_value = acc_param->param1 + acc_param->param2 + acc_param->param3;
 	
 	std::cout << "=> i got " << acc_param->return_value << std::endl;
 	
@@ -69,7 +71,7 @@ void acc_function() {
 	size_counter = 0;
 	
 	// call the interrupt
-	or1ksim_interrupt(IRQ_LINE);
+	//or1ksim_interrupt(IRQ_LINE);
 }
 
 
@@ -92,7 +94,7 @@ int my_read_function(void              *class_ptr,
         data_len = 4;
         
 	switch(offset) {
-		case 0:
+		case 16:
 			std::cout << "STUB: read at offset  " << offset << " so it's the state" << std::endl;
 			std::cout << "STUB: i want send " << acc_param->state << std::endl;
 			for(int index = 0; index < data_len; index++) {
@@ -101,7 +103,7 @@ int my_read_function(void              *class_ptr,
 				rdata[index] = (int)read_element;
         		}
         		break;
-        	case 4:
+        	case 12:
 			std::cout << "STUB: read at offset  " << offset << " so it's the return_value" << std::endl;
 			std::cout << "STUB: i want send " << acc_param->return_value << std::endl;
 			for(int index = 0; index < data_len; index++) {
@@ -138,32 +140,41 @@ int my_write_function(void              *class_ptr,
         
         std::cout << "STUB: received char " << (int) wdata[0] << " " << (int) wdata[1] << " " <<  (int) wdata[2] << " " << (int) wdata[3] << std::endl;
         switch(offset) {
-        	case 0:
+        	case 16:
         		std::cout << "STUB: at offset  " << offset << " so it's the state" << std::endl;
         		acc_param->state = 0;
         		for(int index = 0; index < data_len; index++) {
         			acc_param->return_value += (int)wdata[data_len - (index + 1)] << index*8;
         		}
+			acc_param->state = COMPUTING;
+			std::cout << "STUB: Computation start in t -" << unit_count << std::endl;
         		break;
-        	case 4:
+        	case 12:
         		std::cout << "STUB: at offset  " << offset << " so it's return_value" << std::endl;
         		acc_param->return_value = 0;
         		for(int index = 0; index < data_len; index++) {
         			acc_param->return_value += (int)wdata[data_len - (index + 1)] << index*8;
         		}
         		break;
-        	case 8:
+        	case 0:
         		std::cout << "STUB: at offset  " << offset << " so it's param1" << std::endl;
         		acc_param->param1 = 0;
         		for(int index = 0; index < data_len; index++) {
         			acc_param->param1 += (int)wdata[data_len - (index + 1)] << index*8;
         		}
         		break;
-        	case 12:
+        	case 4:
         		std::cout << "STUB: at offset  " << offset << " so it's param2" << std::endl;
         		acc_param->param2 = 0;
         		for(int index = 0; index < data_len; index++) {
         			acc_param->param2 += (int)wdata[data_len - (index + 1)] << index*8;
+        		}
+        		break;
+		case 8:
+        		std::cout << "STUB: at offset  " << offset << " so it's param3" << std::endl;
+        		acc_param->param3 = 0;
+        		for(int index = 0; index < data_len; index++) {
+        			acc_param->param3 += (int)wdata[data_len - (index + 1)] << index*8;
         		}
         		break;
         	default:
@@ -180,6 +191,7 @@ int my_write_function(void              *class_ptr,
 	std::cout << " --> state = " << acc_param->state << std::endl;
 	std::cout << " --> param1 = " << acc_param->param1 << std::endl;
 	std::cout << " --> param2 = " << acc_param->param2 << std::endl;
+	std::cout << " --> param3 = " << acc_param->param3 << std::endl;
 	std::cout << " --> return_value = " << acc_param->return_value << std::endl;
 	
 	// when the transmission is done, start the computation

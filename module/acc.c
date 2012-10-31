@@ -149,7 +149,7 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		
 		// send the 32 bit struct part
 		for(tx_byte = 0; tx_byte < tx_byte_32; tx_byte+=4) {
-			iowrite32_rep(device_virtual_address + tx_byte + offset, ((void *)kernel_argument) + tx_byte, 1);
+			iowrite32_rep(device_virtual_address + tx_byte, ((void *)kernel_argument) + tx_byte, 1);
 		}
 		
 		offset_param = tx_byte_32;
@@ -157,19 +157,19 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		
 		// send the 16 bit struct part
 		for(tx_byte = 0; tx_byte < tx_byte_16; tx_byte+=2) {
-			iowrite16_rep(device_virtual_address + tx_byte + offset + offset_param, ((void *)kernel_argument) + tx_byte + offset_param, 1);
+			iowrite16_rep(device_virtual_address + tx_byte + offset_param, ((void *)kernel_argument) + tx_byte + offset_param, 1);
 		}
 		
 		offset_param += tx_byte_16;
 		
 		// send the 8 bit struct part
 		for(tx_byte = 0; tx_byte < tx_byte_8; tx_byte+=1) {
-			iowrite8_rep(device_virtual_address + tx_byte + offset + offset_param, ((void *)kernel_argument) + tx_byte + offset_param, 1);
+			iowrite8_rep(device_virtual_address + tx_byte + offset_param, ((void *)kernel_argument) + tx_byte + offset_param, 1);
 		}
 		
 		
 		//********* send the start to the device addr **********
-		iowrite32_rep(device_virtual_address, &start_command, 1);
+		iowrite32_rep(device_virtual_address+sizeof(struct command_argument), &start_command, 1);
 		
 		//sleep and wait for the interrupt
 		//wait_event_interruptible(queue, flags != 0);
@@ -179,10 +179,10 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		while(1) {
 		
 			// read the state of the register
-			int state = ioread32(device_virtual_address);
+			int state = ioread32(device_virtual_address+sizeof(struct command_argument));
 			
 			// check if the computation is done
-			if (state == done_status) {
+			if (state == 0x02) {
 				break;
 			}
 		
@@ -192,7 +192,7 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 		
 		// ************ read the result ***********
 		//for an int it's easy
-		kernel_argument->return_value = ioread32(device_virtual_address + offset);
+		kernel_argument->return_value = ioread32(device_virtual_address + 3*sizeof(int));
 		
 		//write the result in the user space variable (if any return)
 		result = copy_to_user((int __user *)arg, kernel_argument, sizeof(struct command_argument));

@@ -21,9 +21,10 @@
 
 // the struct that we exchange from user to the module
 struct command_argument {
-	int return_value;
 	int param1;
 	int param2;
+	int param3;
+	int return_value;
 };
 
 
