@@ -85,31 +85,45 @@ As you can see in the acc.c file, in the init function you have to:
 The function request_mem_region needs the physical address and the size of the device and its (arbitrary) name. This function reserves the I/O memory of the device. If the result of this function is NULL, the kernel can't get the I/O memory address, so you have to check this fact.
 You can check if it worked by typing "cat /proc/iomem"
 	   
-	2) Then you have to remap the real physical address into a virtual one that can be used, with the instruction:
+* Then you have to remap the real physical address into a virtual one that can be used, with the instruction:
+		```
 		device_virtual_address = ioremap(base_address, size_address);
-	   this function return a pointer of type __iomem*, which is a void* pointer but is stressed the fact is a pointer to an I/O 		   memory. This should works fine but in our case, we have appended the following code 
+		```
+this function return a pointer of type __iomem*, which is a void* pointer but is stressed the fact is a pointer to an I/O memory. This should works fine but in our case, we have appended the following code 
+                ```
 		EXPORT_SYMBOL(__ioremap);
 		EXPORT_SYMBOL(iounmap);
-	   in the file or32_ksyms.c that is located at linux/arch/openrisc/kernel, because the token ioremap (and iounmap) isn't 		   declared.
+		```
+in the file or32_ksyms.c that is located at linux/arch/openrisc/kernel, because the token ioremap (and iounmap) isn't declared.
 	   
-	3) If there is an interrupt handler in your device you have to initialize here the interrupt with the function
+* If there is an interrupt handler in your device you have to initialize here the interrupt with the function
+		```
 		result = request_irq(irq, (irq_handler_t) acc_handler, IRQF_SHARED, name, (void*)(acc_handler));
-	   The function request_irq, reserve the physical line specified by the variable irq to our device driver. The parameter 		   acc_handler is the function of the interrupt handler also define in this file. IRQF_SHARED is a flags that distingues the 		   type of the interrupt line.
-	   You can check if it worked by typing "cat /proc/interrupts"
+		```
+The function request_irq, reserve the physical line specified by the variable irq to our device driver. The parameter 		   acc_handler is the function of the interrupt handler also define in this file. IRQF_SHARED is a flags that distingues the 		   type of the interrupt line.
+You can check if it worked by typing "cat /proc/interrupts"
 	   
-	4) Then you have to allocate the space for the device parameters with the function:
+* Then you have to allocate the space for the device parameters with the function:
+		```
 		kernel_argument = kmalloc(sizeof(struct command_argument), GFP_KERNEL);
-	   where kernerl_argument is a global variable declared of type of the struct that you define as the parameter structure, that 		   in our case is command_argumet. In this variable we store all the parameters that the device needs (even the return value)
+		```
+where kernerl_argument is a global variable declared of type of the struct that you define as the parameter structure, that in our case is command_argumet. In this variable we store all the parameters that the device needs (even the return value)
 	   
-	5) If you need a samphore for the lock of the device, you need to initalize it here with the function:
+* If you need a samphore for the lock of the device, you need to initalize it here with the function:
+		```
 		sema_init(&kernel_argument_semaphore, sem_max_access);
-	   To takle the concurrency problem we use a global semaphore, wich actually is a mutex in our case. Further explanation on how it work is in the module operation section.
+		```
+To takle the concurrency problem we use a global semaphore, wich actually is a mutex in our case. Further explanation on how it work is in the module operation section.
 	   
-	6) Finally you have to register your device with the instruction 
+* Finally you have to register your device with the instruction 
+		```
 		device_number = register_chrdev(major, name, &acc_fops);
-	   The variable major is the major number set to 0 (this means that we set the minor and the major number dynamically), name is 	   the device name and acc_fops is the file of the operation and is a global variable declared of type struct file_operations. 		   This struct countains all the operations of the device node that we will create with the load script.
-	   From this point on the kernel can call one function that we have specifies in acc_fops.
-	7) Then we have to get the minor and major number with the instruction:
+		```
+The variable major is the major number set to 0 (this means that we set the minor and the major number dynamically), name is 	   the device name and acc_fops is the file of the operation and is a global variable declared of type struct file_operations. 		   This struct countains all the operations of the device node that we will create with the load script.
+From this point on the kernel can call one function that we have specifies in acc_fops.
+* Then we have to get the minor and major number with the instruction:
+		```
 		major = MAJOR(device_number);
 		minor = MINOR(device_number);
+		```
 The acc_cleanup_module function undone all the initializations that we have done.
