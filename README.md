@@ -76,10 +76,10 @@ We start talking about the function that perform the initialization of the modul
 
 As you can see in the acc.c file, in the init function you have to:
 
-	1) Take care of the I/O memory region with the instruction:
-		my_device_region = request_mem_region(base_address, size_address, name);
-	   The function request_mem_region needs the physical address and the size of the device and its (arbitrary) name. This function 		   reserves the I/O memory of the device. If the result of this function is NULL, the kernel can't get the I/O memory address, 		   so you have to check this fact.
-	   You can check if it worked by typing "cat /proc/iomem"
+1) Take care of the I/O memory region with the instruction:
+	my_device_region = request_mem_region(base_address, size_address, name);
+The function request_mem_region needs the physical address and the size of the device and its (arbitrary) name. This function reserves the I/O memory of the device. If the result of this function is NULL, the kernel can't get the I/O memory address, so you have to check this fact.
+You can check if it worked by typing "cat /proc/iomem"
 	   
 	2) Then you have to remap the real physical address into a virtual one that can be used, with the instruction:
 		device_virtual_address = ioremap(base_address, size_address);
