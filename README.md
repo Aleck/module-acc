@@ -49,6 +49,7 @@ Once you have installed the application and the module, build the kernel to comm
 
 We use a modified configuration file, which is based on the generic file found in linux/arch/openrisc plus a geniric section that rapresent the physical device:
 
+'''
 section generic
   enabled = 1
   baseaddr = 0xa0000000
@@ -58,6 +59,7 @@ section generic
   hw_enabled = 1
   word_enabled = 1 
 end
+'''
 
 and we have set a xterm console for interacting with the simulated os in the uart section.
 
