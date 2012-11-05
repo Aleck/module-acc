@@ -1,4 +1,4 @@
-################################## Parametrizzazione del makefile
+################################## Path parameters
 MODULE_NAME = acc
 ARCH = openrisc
 CROSS_COMPILE = or32-linux-
@@ -8,11 +8,11 @@ MODULE_DIRECTORY = modules
 NAME_LOADER = load_module_acc
 ###################################
 
-################################## Derivazioni dai parametri
+
 PATH_INITRAMFS = $(KDIR)/arch/openrisc/support
 PATH_MODULE_DIR = $(PATH_INITRAMFS)/initramfs/$(MODULE_DIRECTORY)
 PATH_INITD  = $(PATH_INITRAMFS)/initramfs/etc/init.d
-######################################
+
 
 
 

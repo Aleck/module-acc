@@ -1,11 +1,15 @@
+################################## Path parameters
+CROSS_COMPILE = or32-linux-
 KDIR := ~/progetti/linux
+APP_FILES = app_prova1
+###################################
+
 PATH_INITRAMFS = $(KDIR)/arch/openrisc/support
 PATH_APP_DIR = $(PATH_INITRAMFS)/initramfs
-APP_FILES = app_prova1
 
 
 app_prova1: app.c
-	@ or32-linux-gcc -o app_prova1 app.c
+	@ $(CROSS_COMPILE)gcc -o app_prova1 app.c
 	@ echo "GEN app_prova1"
 
 

@@ -1,7 +1,10 @@
-DEPS = simulatore.h
-OBJ = simulatore.o
+################################## Path parameters
 LDLIB = -L/opt/openrisc/lib -lsim
 CFLAGS = -I/opt/openrisc/include
+DEPS = simulatore.h
+OBJ = simulatore.o
+###################################
+
 
 %.o: %.cpp $(DEPS)
 	@ $(CXX) $(CFLAGS) $(CPPFLAGS) -c $<
