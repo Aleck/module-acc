@@ -288,8 +288,8 @@ int acc_init_module(void) {
 
 	// Here we register our device
 	// WARNING! from here any app can start to call our operation
-	result = register_chrdev(major, name, &acc_fops);	
-	if (result < 0) {
+	device_number = register_chrdev(major, name, &acc_fops);	
+	if (device_number < 0) {
 		printk(KERN_ALERT "%s: can't get major number\n", name);
 		release_mem_region(base_address,size_address);
 		//free_irq(irq, (void*)(acc_handler));
