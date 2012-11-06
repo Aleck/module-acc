@@ -121,7 +121,7 @@ You can check if it worked by typing "cat /proc/interrupts"
 		kernel_argument = kmalloc(sizeof(struct command_argument), GFP_KERNEL);
 
 		
-where kernerl_argument is a global variable declared of type of the struct that you define as the parameter structure, that in our case is command_argumet. In this variable we store all the parameters that the device needs (even the return value)
+where kernerl_argument is a global variable declared of type of the struct that you define as the parameter structure, that in our case is command_argumet. In this variable we store all the parameters that the device needs (even the return value).
 	   
 * If you need a samphore for the lock of the device, you need to initalize it here with the function:
 
@@ -151,9 +151,48 @@ The acc_cleanup_module function undone all the initializations that we have done
 
 ### MODULE OPERATION ###
 
-* 
+The operation allowed by the module are: open, close and ioctl.
+
+* Open
+This simple operation is called whenever the device node /dev/acc0 is open. There is no particular operation that must be done, because the device is an hardware device alredy powerd on and initializated. Here, if used an interrupt mechanism, there is the request of the interrupt line.
+
+* Close
+This function is simple the dual of the open operation. Here, if used an interrupt mechanism, there is the free of the interrupt line. In this way the module occupies the interrupt line only when used.
+
+* Ioctl
+The ioctl function is an advanced operation that rappresent a system call. An application that want to do a system call, must set a description file of the device node, the operation number and, optionally, other argument. In this case the description file of the device node is /dev/acc0 created with the load script. The operation number gives two information about a system call: the magic number and the operation number. The magic number is used to identify the module that must handle the operation and the other identify the operation itself. In the kernel documentation there is a list of used magic number. In this moment the magic number used by the module is free. The operation number is an incremental value starting from zero. If there are more than one device, the correspondent module can share the magic nuber, but different operation number.
+If the operation that the device perform has a return value, the whole operation number must be obtained by the macro
+
+		_IOWR(ACC_IOC_MAGIC, 0, struct command_argument)
+		
+otherwise use 
+
+		_IOW(ACC_IOC_MAGIC, 0, struct command_argument)
+		
+the read and write are intended from the application point of view. This imply that an application which use the system call must include the module header for the magic number and the struct command_argument, which is explained early.
+
+	Warning: the old version of this macro, as third parameter wanted the size of the data passed from user space to kernel space.
+		
+In this module, this function fills the data needed by the device and return, once available, the result to the user.
+The module use a ioctl function to achieve this goal because it's possible for the module to see the device's operation as an atomic one.
+To tackle the concurrency problem the module use a mutex to handle multiple system call.
+This function consist of three part:
+
+1) once we hold a semaphore we copy form the user space to the kernel space the parameter, than we write in the device memory. We use a 32bit write until we can because is the most efficient, then if there some bit left we do the 16 or 8 bit write.
+
+2) once transferred all the parameters, we write in the " device state" the start command. The module don't check the "device state" because the module uses the semaphore.
+
+3) now the module has to wait until the device perform the operation. If it's used polling, the module periodically read the "device state". If it's used the interrupt, the module go to sleep until the interrupt handler wake up the module.
+
+4) then the module reads the return value from the device memory, which in this module is an integer; copy the update structure from the kernel space to the user space.
+
+5) release the semaphore and complete the execution.
 
 
+### INTERRUPT HANDLER ###
+This function is called by the kernel, whenver there is an interrupt in the specified interrupt line (initialized when an application open the device node). This function wake up the module and return a IRQ_HANDLED flag.
 
+
+### THE STUB ###
 
 
