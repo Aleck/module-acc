@@ -45,7 +45,7 @@ The module makefile handle the "/modules" directory by itself and add the module
 
 ### How to use the simulator ###
 
-Once you have installed the application and the module, build the kernel to commit the added files in the linux executable. The stub acts in the like the standalone simulator, except the fact that if no paramters is passed it assume that the config file and the linux exutable are in the working directory.
+Once you have installed the application and the module, build the kernel to commit the added files in the linux executable. The stub acts like the standalone simulator, except the fact that if no paramters is passed it assume that the config file and the linux exutable are in the working directory.
 
 We use a modified configuration file, which is based on the generic file found in linux/arch/openrisc plus a geniric section that rapresent the physical device:
 
@@ -66,11 +66,15 @@ and we have set a xterm console for interacting with the simulated os in the uar
 If you have copied the "vmlinux" exutables in the "simulatore" directory you can simulate everything by run "./simulatore", a xterm console should appear and from that you can launch the toy application and see if it works.
 
 
-
 ### INTRODUCTION TO THE DEVICE DRIVER ###
 
 A character driver is suitable for most simple hardware device. Char devices are accessed through names in the filesystem. Those name are called special files or device files or simply nodes of the filesystem tree; they are conventionally located in the /dev directory. If yuo issue the ls -l command. you'll see two numbers in the device. These numbers are the major and the minor device number for the particular device. The major number identifies the driver associated with the device. The minor number is used by the kernel to determine exatcly wich device is being referred to. You can either get a direct pointer to your device from the kernel, or you can use the minor number yourself as an index into a local array of the device. Either way, the kernel itself knows almost nothing about minor number beyond the fact that they refer to devices implemented by your driver. 
 You can get these number dynamically or you can specify them manually. We have choose to set them dynamically, becuase in this way the numbers are handled by the kernel itself.
+
+
+### LOAD SCRIPT ###
+
+When the simulated os is booted, its init script load the module executing the load_module_acc script. This simple script call the insmod command that perform the insert of the acc_module in the kernel by calling the module's init function (see the initializitaion and cleanup section). If it passed the initialization of the module the script look which major and minor number (see the initializitaion and cleanup section) are assigned by the kernel and create the module node in /dev/acc0. In this way every operations peformed over that file are allowed by the module.
 
 
 ### INITIALIZATION AND CLEANUP ###
@@ -143,3 +147,13 @@ From this point on the kernel can call one function that we have specifies in ac
 
 		
 The acc_cleanup_module function undone all the initializations that we have done.
+
+
+### MODULE OPERATION ###
+
+* 
+
+
+
+
+
