@@ -219,7 +219,7 @@ To achieve the computation delay, we use a cycle that slot the time of the compu
 
 ```
 
-//main simulator cycle   
+//main simulator cycle
   	while(1){
   		or1ksim_run(UNIT_DELAY);
  
@@ -233,4 +233,6 @@ To achieve the computation delay, we use a cycle that slot the time of the compu
   	
 ```
 
-acc_function perform the real
+acc_function perform the simple mathematical operation, with the interrupt signal if used..
+
+In this application the parameters have a static address where they are stored (because they are four int). So whenever there is a reading or a writing in the device memory, the object address give us information about which paramater we are reading or writing; thus it's used a switch based on the base address offset. In the writng function, when some application in the simulated enviroment write the status address we start the computation. When in the reading function is read the return value the operation is done.
