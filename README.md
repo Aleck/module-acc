@@ -86,6 +86,7 @@ As you can see in the acc.c file, in the init function you have to:
 
 	```
 	my_device_region = request_mem_region(base_address, size_address, name);
+	
 	```
 	
 The function request_mem_region needs the physical address and the size of the device and its (arbitrary) name. This function reserves the I/O memory of the device. If the result of this function is NULL, the kernel can't get the I/O memory address, so you have to check this fact.
@@ -194,5 +195,42 @@ This function is called by the kernel, whenver there is an interrupt in the spec
 
 
 ### THE STUB ###
+Or1ksim can be used as a library. The simulator expose a set of function to be used by the stub. The function that we use are:
 
+		int or1ksim_init(int argc , char *argv , void *class_ptr , int (*upr )(void *class_ptr , unsigned long int addr , unsigned char mask [], unsigned char rdata [], int data_len ), int (*upw )(void *class_ptr , unsigned long int addr , unsigned char mask [], unsigned char wdata [], int data_len ))
 
+this function initialize the or1ksim. The first two parmaters rapprest the argument taken by the standalone simulator. The third parameter is a pointer to a c++ class that can be passed back with the upcall. The fourth and fifth are the reading and writing upcall function. These two function are called by the library whenever the simulated application (linux in this case) read or write in an address defined in the custom section of the configuration file. These function have as parameter the class specified in the initialization (not used by the simulator itself), the object address, two vector rapresenting the used byte (32, 16 or 8 bit in reading/write) and the data transferred. The last parameter of the upcalling function is the length of the data array. 
+
+		int or1ksim_run (double duration )
+		
+this function execute the simulator by duration specified, if set -1, it act like the standalone simulator.
+
+		void or1ksim_interrupt (int i )
+		
+this function generate an interrupt in the specified interrupt line.
+
+In this case the stub enulate the behaviour of a simple device that execute a simple mathematical operation. Thus even the stub use a simple state machine with 3 state:
+
+* READY: means that the device can be used.
+* COMPUTING: means that the device is doing its work. This obviously fake computation delay stand for the real device one. Since we want to have a human-like delay is set in order of second.
+* DONE: means that the device have generated a result (if any) that can be readed from the device memory.
+
+To achieve the computation delay, we use a cycle that slot the time of the computation.
+
+```
+
+//main simulator cycle   
+  	while(1){
+  		or1ksim_run(UNIT_DELAY);
+ 
+  		if (acc_param->state == COMPUTING) {
+  			unit_count--;
+  			if (unit_count <= 0) acc_function();
+  				else std::cout << "STUB: Computation start in t -" << unit_count << std::endl;
+  		}
+  		
+  	}
+  	
+```
+
+acc_function perform the real
