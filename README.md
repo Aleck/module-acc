@@ -5,9 +5,9 @@ module-acc
 
 In this repository we have structurated the source file in this way:
 
- -module -> this folder contains the source files of the device driver
- -app -> this folder contains the source files of the toy app that test the driver
- -simulatore -> this folder contains the source files of the stub used to simulate the accelerator
+* module -> this folder contains the source files of the device driver
+* app -> this folder contains the source files of the toy app that test the driver
+* simulatore -> this folder contains the source files of the stub used to simulate the accelerator
 
 
 
@@ -219,7 +219,7 @@ To achieve the computation delay, we use a cycle that slot the time of the compu
 
 ```
 
-//main simulator cycle
+	//main simulator cycle
   	while(1){
   		or1ksim_run(UNIT_DELAY);
  
@@ -236,3 +236,18 @@ To achieve the computation delay, we use a cycle that slot the time of the compu
 acc_function perform the simple mathematical operation, with the interrupt signal if used..
 
 In this application the parameters have a static address where they are stored (because they are four int). So whenever there is a reading or a writing in the device memory, the object address give us information about which paramater we are reading or writing; thus it's used a switch based on the base address offset. In the writng function, when some application in the simulated enviroment write the status address we start the computation. When in the reading function is read the return value the operation is done.
+
+
+### SUMMARY OF THIS CASE STUDY ###
+
+The easy way of getting all the prerequisites is to download a modified ubuntu virtual image by the openRISC team at this site:
+
+		http://opencores.org/or1k/Ubuntu_VirtualBox-image_updates_and_information
+		
+Nowadays is updated at 2011 11 28 and all works. If you want to manage to build the toolchain by yourself check this site:
+
+		http://openrisc.net/toolchain-build.html
+		
+However the interrupt don't work in the git version of linux.
+These examples get the assumption that is used the virtual image, which is refered in this guide as "ubuntu".
+

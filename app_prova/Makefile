@@ -1,6 +1,6 @@
 ################################## Path parameters
 CROSS_COMPILE = or32-linux-
-KDIR := ~/progetti/linux
+KDIR := ../linux
 APP_FILES = app_prova1
 ###################################
 
