@@ -71,7 +71,7 @@ void acc_function() {
 	size_counter = 0;
 	
 	// call the interrupt
-	or1ksim_interrupt(IRQ_LINE);
+	//or1ksim_interrupt(IRQ_LINE);
 }
 
 
