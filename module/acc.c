@@ -84,17 +84,39 @@ static int flags = 0;
 
 
 
+//************************** interrupt handler ****************************************
+irq_handler_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
+
+	flags = 1;
+	wake_up_interruptible(&queue);
+
+	return (irq_handler_t)IRQ_HANDLED;
+}
+//****************************************************************************************************
+
 
 
 //************************** module operation ****************************************
-
-
 static int acc_open(struct inode *inode, struct file *filp) {
+	/*
+	// initialize the interrupt handler
+	result = request_irq(irq, (irq_handler_t) acc_handler, IRQF_SHARED, name, (void*)(acc_handler));
+	printk(KERN_ALERT "result vale : %i \n", result);
+	if(result) {
+		printk(KERN_ALERT "%s: can't register interface interrupt \n", name);
+		free_irq(irq, (void*)(acc_handler));
+		release_mem_region(base_address,size_address);
+		iounmap(device_virtual_address);
+		return result;
+	}
+	
+	*/
 	return 0;
 }
 
 
 static int acc_release(struct inode *inode, struct file *filp) {
+	//free_irq(irq, (void*)(acc_handler));
 	return 0;
 }
 
@@ -216,24 +238,6 @@ static long acc_ioctl(struct file *filp, unsigned int cmd, unsigned long arg) {
 }
 
 
-
-// the interupt handler
-irq_handler_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
-
-	flags = 1;
-	wake_up_interruptible(&queue);
-
-	return (irq_handler_t)IRQ_HANDLED;
-}
-
-
-
-
-
-
-
-
-
 //*************************************************************************************
 
 
@@ -259,25 +263,12 @@ int acc_init_module(void) {
 	
 	// remap the physical address into a virtual
 	device_virtual_address = ioremap(base_address, size_address);
-	/*
-	// initialize the interrupt handler
-	result = request_irq(irq, (irq_handler_t) acc_handler, IRQF_SHARED, name, (void*)(acc_handler));
-	printk(KERN_ALERT "result vale : %i \n", result);
-	if(result) {
-		printk(KERN_ALERT "%s: can't register interface interrupt \n", name);
-		free_irq(irq, (void*)(acc_handler));
-		release_mem_region(base_address,size_address);
-		iounmap(device_virtual_address);
-		return result;
-	}
 	
-	*/
 	//allocate the space for the device parameters
 	kernel_argument = kmalloc(sizeof(struct command_argument), GFP_KERNEL);
 	if (!kernel_argument) {
 		printk(KERN_ALERT "%s: can't allocate enough memory\n", name);
 		release_mem_region(base_address,size_address);
-		//free_irq(irq, (void*)(acc_handler));
 		iounmap(device_virtual_address);
 		return -ENOMEM;
 	}
@@ -292,7 +283,6 @@ int acc_init_module(void) {
 	if (device_number < 0) {
 		printk(KERN_ALERT "%s: can't get major number\n", name);
 		release_mem_region(base_address,size_address);
-		//free_irq(irq, (void*)(acc_handler));
 		kfree(kernel_argument);
 		iounmap(device_virtual_address);
 		return result;
@@ -315,7 +305,6 @@ void acc_cleanup_module(void)
 	release_mem_region(base_address,size_address);
 	kfree(kernel_argument);
 	iounmap(device_virtual_address);
-	//free_irq(irq, (void*)(acc_handler));
 	printk(KERN_INFO "%s: module cleanup OK!\n", name);
 }
 
