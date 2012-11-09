@@ -2,7 +2,7 @@
 MODULE_NAME = acc
 ARCH = openrisc
 CROSS_COMPILE = or32-linux-
-KDIR := ../linux
+KDIR := ../../linux
 MODULE_FILE = acc.ko load_module_acc unload_module_acc
 MODULE_DIRECTORY = modules
 NAME_LOADER = load_module_acc
