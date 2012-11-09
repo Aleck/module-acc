@@ -244,10 +244,53 @@ The easy way of getting all the prerequisites is to download a modified ubuntu v
 
 		http://opencores.org/or1k/Ubuntu_VirtualBox-image_updates_and_information
 		
-Nowadays is updated at 2011 11 28 and all works. If you want to manage to build the toolchain by yourself check this site:
+Nowadays is updated at 2011/11/28 and all works. If you want to manage to build the toolchain by yourself check this site:
 
 		http://openrisc.net/toolchain-build.html
 		
 However the interrupt don't work in the git version of linux.
 These examples get the assumption that is used the virtual image, which is refered in this guide as "ubuntu".
+Create a working folder in the home of ubuntu. Clone in this folder this repository. Also copy the linux three source that you can find in ~/soc-design/linux.
+Now you should have in the working folder two other folders: linux and module-acc.
+Before you can compile the module you must compile at last once the linux three, so cd to it and do:
+
+		make ARCH=openrisc defconfig
+		make
+		make clean
+		
+Now you can compile the module, by cding in module-acc/module and:
+
+		make
+		make install
+		
+you need alsto the application to test the module, so in module-acc/app_prova do:
+		
+		make
+		make install
+		
+Now you can create the linux executable like above. Is more suitable to copy the "vmlinux" exutable in folder module-acc/simulatore and do:
+
+		make
+		
+Now in module-acc/simulatore you should have the "or1ksim.cfg" configuration file, the "vimlinux" and "simulatore" executable and you can start the simulation, by executing 
+
+		./simulatore
+		
+Once the linux has booted, you can interact whit it by the x-term console. In the init script the module is automatically inserted, so you can test the module launching the application in the x-term console:
+
+		./app_prova1
+		
+This application open the device node in /dev/acc0 and fill the struct command_argument with the real parameters. In this case the struct is composed by four integer. Three data number and the return value. The device perform the sum of this three data number. To achieve this goal the application call a system funciotion with:
+
+		result = ioctl(fileno(acc), ACC_OPERATION, &parameters);
+		
+This function use the ioctl operation implemented by the device driver, so the device driver is called. The function, once get the semaphore and check if the operation is correct (using the magic number), copies the data from user space to kernel space. Send the data to the device address (like we explained early) and after write the start command at the state address. It's important the order of the parameters in the declaration of the struct command_argument, because it define the order of the sent data.
+After the statement that write the start command in the device memory, the function must wait that the device copute the result. It can do this by polling or by interrupt.
+
+* in the case of interrupt, the function (and so the app) go to sleep until che interrupt handler wake up the module.
+* in the of polling, the module go in a loop where it continously read the device's state. When it read the "DONE" state, it breaks the loop.
+
+Then read the ruslt value and copy it form kernel space to user space, finally release the semaphore and return. If it's used the interrupt approach, before return it must reset the flag used by the interrupt controller.
+
+Once the ioctl function ha returned the app check the correctness of the operation.
 
