@@ -98,10 +98,10 @@ irq_handler_t acc_handler(int irq, void *dev_id, struct pt_regs *regs) {
 
 //************************** module operation ****************************************
 static int acc_open(struct inode *inode, struct file *filp) {
-	/*
+	/*	
 	// initialize the interrupt handler
+	int result = 0;
 	result = request_irq(irq, (irq_handler_t) acc_handler, IRQF_SHARED, name, (void*)(acc_handler));
-	printk(KERN_ALERT "result vale : %i \n", result);
 	if(result) {
 		printk(KERN_ALERT "%s: can't register interface interrupt \n", name);
 		free_irq(irq, (void*)(acc_handler));
@@ -109,7 +109,6 @@ static int acc_open(struct inode *inode, struct file *filp) {
 		iounmap(device_virtual_address);
 		return result;
 	}
-	
 	*/
 	return 0;
 }
