@@ -6,7 +6,7 @@ module-acc
 In this repository we have structurated the source file in this way:
 
 * module -> this folder contains the source files of the device driver
-* app -> this folder contains the source files of the toy app that test the driver
+* app_prova -> this folder contains the source files of the toy app that test the driver
 * simulatore -> this folder contains the source files of the stub used to simulate the accelerator
 
 
@@ -295,5 +295,5 @@ After the statement that write the start command in the device memory, the funct
 
 Then read the ruslt value and copy it form kernel space to user space, finally release the semaphore and return. If it's used the interrupt approach, before return it must reset the flag used by the interrupt controller.
 
-Once the ioctl function ha returned the app check the correctness of the operation.
+Once the ioctl function has returned, the app check the correctness of the operation. The stub prints on terminal every read or write he receives.
 
